@@ -40,5 +40,11 @@ public class MovieController {
         return ResponseEntity.ok().body(savedMovie);
     }
 
+    @GetMapping("/saved-movies")
+    public ResponseEntity<List<Movie>> getUserMovies(@RequestParam String username){
+        List<Movie> movies = movieService.getUserMovies(username);
+        return ResponseEntity.ok().body(movies);    
+    }
+
 
 }

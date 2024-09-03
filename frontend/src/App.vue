@@ -27,6 +27,7 @@
         <my-films
           v-else-if="currentPage === 'myFilms'"
           :watchedMovies="watchedMovies"
+          :username="sessionUserData"
         />
       </template>
     </main>
@@ -154,7 +155,6 @@ export default {
           image: fullImageUrl,
           genre: data.genres,
           rating: data.vote_average,
-          homepage: data.homepage,
           release_date: data.release_date,
           runtime: data.runtime,
           original_language: data.original_language,
@@ -201,6 +201,7 @@ export default {
             poster_path: currentMovie.value.image,
             rating: currentMovie.value.userRating,
             genres: currentMovie.value.genre,
+            original_language: currentMovie.value.original_language,
             // production_companies: currentMovie.value.production_companies,
             // production_countries: currentMovie.value.production_countries,
           },

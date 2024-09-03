@@ -25,33 +25,20 @@ public class Movie {
 
     private String title;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String overview;
 
     private String release_date;
-
     private int runtime;
-
     private double vote_average;
-
-    private int vote_count;
-
     private String poster_path;
-
-    private String backdrop_path;
-
     private String original_language;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // LAZY fetching for better performance
+    @OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY) // LAZY fetching for better performance
     @JoinColumn(name = "movie_id") // Ensures the join is done on movie_id in the genres table
     private List<GenresData> genres;
-
-    private String homepage;
-
     private long budget;
-
     private long revenue;
-
-    private String status;
+    private Double rating;
 
 }

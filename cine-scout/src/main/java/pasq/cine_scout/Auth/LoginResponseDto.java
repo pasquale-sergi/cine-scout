@@ -11,7 +11,8 @@ import java.util.Optional;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponseDto {
-    private ApplicationUser user;
+    private Integer id;
+    private String username;
     private String jwt;
 
 }

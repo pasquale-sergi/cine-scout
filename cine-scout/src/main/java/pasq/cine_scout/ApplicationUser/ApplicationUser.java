@@ -52,6 +52,13 @@ public class ApplicationUser implements UserDetails {
     }
 
     @Override
+    public String toString() {
+        return "ApplicationUser{id=" + userId + ", username='" + username + "'}";
+        // Avoid printing relationships like roles, savedMovies, etc.
+    }
+
+
+    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.authorities;
     }

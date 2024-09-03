@@ -5,17 +5,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClient;
-import org.asynchttpclient.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
+import pasq.cine_scout.ApplicationUser.ApplicationUser;
 import pasq.cine_scout.ApplicationUser.UserRepository;
+import pasq.cine_scout.ApplicationUser.UserService;
+import pasq.cine_scout.SavedMovies.SavedMovies;
+import pasq.cine_scout.SavedMovies.SavedMoviesRepository;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -26,9 +26,12 @@ public class MovieService {
     @Autowired
     private MovieRepository movieRepository;
 
+
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private SavedMoviesRepository savedMoviesRepository;
 
     @Value("${api.themoviedb.key}")
     private String apiKey;
@@ -124,5 +127,27 @@ public class MovieService {
         client.close();
         return response;
     }
+
+    public List<Movie> getUserMovies(String username){
+        String trimmedUsername = username.trim();
+        System.out.println("Searching for username: '" + trimmedUsername + "'");
+
+        Optional<ApplicationUser> user = userRepository.findByUsername(trimmedUsername);
+        if (user.isEmpty()) throw new RuntimeException("user not found with given username: " + trimmedUsername);
+
+        System.out.println("user info: " + user);
+
+        List<SavedMovies> savedMovies = savedMoviesRepository.findByUser(Optional.of(user.get()));
+        if (savedMovies.isEmpty()) {
+            throw new RuntimeException("No movies saved for this user");
+        }
+
+        System.out.println("savedmovies: " + savedMovies);
+
+        return savedMovies.stream()
+                .map(SavedMovies::getMovie)
+                .collect(Collectors.toList());
+    }
+
 
 }

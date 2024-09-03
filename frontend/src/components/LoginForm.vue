@@ -77,7 +77,7 @@ export default {
 
         const data = await response.json();
         console.log("DATA", data);
-        if (data.user == null) {
+        if (data.username == null || data.jwt == null) {
           console.error("This Login Failed");
           state.authFailed = true;
           state.message = "Incorrect username or password.";

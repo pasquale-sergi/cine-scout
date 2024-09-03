@@ -34,8 +34,10 @@ public class SavedMoviesService {
                 .orElseGet(() -> {
                     // If the movie doesn't exist, save it
                     Movie newMovie = Movie.builder()
+                            .movieId(movie.getMovieId())
                             .title(movie.getTitle())
                             .genres(movie.getGenres())
+                            .rating(movie.getRating())
                             .overview(movie.getOverview())
                             .poster_path(movie.getPoster_path())
                             .vote_average(movie.getVote_average())

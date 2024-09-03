@@ -2,6 +2,7 @@ package pasq.cine_scout.SavedMovies;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pasq.cine_scout.ApplicationUser.ApplicationUser;
 import pasq.cine_scout.Movie.Movie;
@@ -9,6 +10,7 @@ import pasq.cine_scout.Movie.Movie;
 import java.util.Date;
 
 @Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -28,4 +30,11 @@ public class SavedMovies {
 
     @Column(nullable = false)
     private Date savedDate;
+
+
+    @Override
+    public String toString() {
+        return "SavedMovies{id=" + id + ", movie=" + movie.getTitle() + ", savedDate=" + savedDate + "}";
+    }
+
 }

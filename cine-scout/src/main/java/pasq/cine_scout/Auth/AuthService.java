@@ -48,9 +48,10 @@ public class AuthService {
             );
 
             String token = tokenService.generateJwt(auth);
-            return new LoginResponseDto(userRepository.findByUsername(username).get(), token);
+            ApplicationUser user = userRepository.findByUsername(username).get();
+            return new LoginResponseDto(user.getUserId(), user.getUsername(), token);
         }catch (AuthenticationException e){
-            return new LoginResponseDto(null, "");
+            return new LoginResponseDto(null,null,  "");
         }
     }
 }
