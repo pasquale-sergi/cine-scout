@@ -2,6 +2,7 @@ package pasq.cine_scout.SavedMovies;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import pasq.cine_scout.ApplicationUser.ApplicationUser;
 import pasq.cine_scout.ApplicationUser.UserRepository;
@@ -63,4 +64,17 @@ public class SavedMoviesService {
         // Save the SavedMovie entry
         return savedMovieRepository.save(newSavedMovies);
     }
+
+    @Transactional
+    public void deleteMovie(Movie movie, String username) {
+        Optional<ApplicationUser> user = userRepository.findByUsername(username);
+        Optional<SavedMovies> movieToDelete = savedMovieRepository.findByUserAndMovie(user.get(), movie);
+
+        if (movieToDelete.isEmpty()) {
+            throw new RuntimeException("Movie or User not found with given ids");
+        }
+
+        savedMovieRepository.delete(movieToDelete.get());
+    }
+
 }

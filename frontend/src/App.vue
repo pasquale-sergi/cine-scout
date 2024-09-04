@@ -26,8 +26,9 @@
         />
         <my-films
           v-else-if="currentPage === 'myFilms'"
-          :watchedMovies="watchedMovies"
+          :savedMovies="savedMovies"
           :username="sessionUserData"
+          @delete-movie="deleteMovie"
         />
       </template>
     </main>
@@ -59,6 +60,7 @@ export default {
     const watchedMovies = ref([]);
     const userJWT = ref(null);
     const sessionUserData = ref(null);
+    const savedMovies = ref([]);
 
     const handleLogin = (userData) => {
       // In a real app, you'd verify the login with your backend
@@ -69,14 +71,23 @@ export default {
       // Save username and JWT to local storage
       localStorage.setItem("userToken", userData.token);
       localStorage.setItem("username", userData.username);
+      console.log("Username: ", sessionUserData.value);
     };
 
     const logout = () => {
       isLoggedIn.value = false;
       currentMovie.value = null;
+      watchedMovies.value = [];
+      savedMovies.value = [];
       userJWT.value = null;
+      sessionUserData.value = null;
+
+      // clear local storage
       localStorage.removeItem("userToken");
       localStorage.removeItem("username");
+
+      //redirect to home or login page
+      currentPage.value = "home";
     };
 
     const showHome = () => {
@@ -86,6 +97,7 @@ export default {
 
     const showMyFilms = () => {
       currentPage.value = "myFilms";
+      getSavedMovies();
     };
 
     //put criteria = {} inside func parameter
@@ -160,7 +172,7 @@ export default {
           original_language: data.original_language,
           genres: data.genres,
           trailer: trailerUrl,
-          platforms: platforms,
+          platforms: Array.isArray(platforms) ? platforms : [],
         };
 
         console.log("Current Movie Infos: ", currentMovie.value.platformName);
@@ -231,6 +243,66 @@ export default {
       }
     };
 
+    const getSavedMovies = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/movie/saved-movies?username=${sessionUserData.value}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${userJWT.value}`,
+            },
+          }
+        );
+        const data = await response.json();
+        savedMovies.value = data;
+        console.log("Saved Movie Data ", savedMovies.value);
+      } catch (error) {
+        console.error("Error retrieving the saved movies");
+      }
+    };
+
+    const deleteMovie = async (movie) => {
+      // Accepting the movie object as a parameter
+      try {
+        if (!movie || !movie.id) {
+          console.error("Movie object or movie ID is not provided.");
+          return;
+        }
+
+        const response = await fetch(
+          `http://localhost:8080/movie/delete?movieId=${movie.movieId}&username=${sessionUserData.value}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${userJWT.value}`,
+            },
+            body: JSON.stringify(movie),
+          }
+        );
+
+        if (response.status === 204) {
+          console.log("Delete successful: No content returned.");
+        } else if (response.ok) {
+          // If it's not 204, it might be another status that still returns content
+          const data = await response.json();
+          console.log("Delete successful:", data);
+        } else {
+          throw new Error(`Failed to delete movie. Status: ${response.status}`);
+        }
+
+        // Update the savedMovies list by removing the deleted movie
+        savedMovies.value = savedMovies.value.filter(
+          (savedMovie) => savedMovie.id !== movie.id
+        );
+      } catch (error) {
+        console.error("Error deleting movie:", error);
+        alert("There was an error deleting the movie.");
+      }
+    };
+
     onMounted(() => {
       // Check if user is already logged in (e.g., from localStorage)
       const token = localStorage.getItem("userToken");
@@ -257,6 +329,9 @@ export default {
       getNextMovie,
       rateMovie,
       markAsWatched,
+      getSavedMovies,
+      savedMovies,
+      deleteMovie,
     };
   },
 };
