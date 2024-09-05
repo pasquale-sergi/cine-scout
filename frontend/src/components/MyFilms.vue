@@ -59,6 +59,7 @@ export default {
   methods: {
     showMovieDetails(movie) {
       this.selectedMovie = movie;
+      console.log("movie for details: ", movie);
       this.isPopupVisible = true;
     },
     closeMovieDetails() {

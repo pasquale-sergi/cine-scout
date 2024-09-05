@@ -3,42 +3,44 @@
     <div class="popup-content">
       <button class="close-button" @click="closePopup">×</button>
       <h2>{{ movie.title }}</h2>
-      <p>{{ movie.description }}</p>
+      <p>{{ movie.overview }}</p>
       <div class="infos">
         <img
-          v-if="movie.image"
-          :src="movie.image"
+          v-if="movie.poster_path"
+          :src="movie.poster_path"
           :alt="movie.title"
           class="movie-poster"
         />
         <div class="details">
           <div class="detail-item">
             <span class="detail-title">Release Date:</span>
-            <span>{{ movie.release_date }}</span>
+            <span class="detail-value">{{ movie.release_date }}</span>
           </div>
           <div class="detail-item">
             <span class="detail-title">Production Companies:</span>
-            <span>{{
+            <span class="detail-value">{{
               movie.production_companies ? movie.production_companies : "N/A"
             }}</span>
           </div>
           <div class="detail-item">
             <span class="detail-title">Runtime:</span>
-            <span>{{ movie.runtime ? movie.runtime : "N/A" }} mins</span>
+            <span class="detail-value"
+              >{{ movie.runtime ? movie.runtime : "N/A" }} mins</span
+            >
           </div>
           <div class="detail-item">
             <span class="detail-title">Genre:</span>
-            <span>{{
+            <span class="detail-value">{{
               movie.genres ? movie.genres.map((g) => g.name).join(", ") : "N/A"
             }}</span>
           </div>
           <div class="detail-item" v-if="movie.rating != null">
             <span class="detail-title">Rating:</span>
-            <span>{{ movie.rating.toFixed(1) }}/10</span>
+            <span class="detail-value">{{ movie.rating.toFixed(1) }}/10</span>
           </div>
           <div class="detail-item">
             <span class="detail-title">Platforms:</span>
-            <span>{{
+            <span class="detail-value">{{
               movie.platforms
                 ? movie.platforms.map((p) => p.provider_name).join(", ")
                 : "N/A"
@@ -89,16 +91,10 @@ export default {
   background: white;
   padding: 20px;
   border-radius: 8px;
-  max-width: 600px;
+  max-width: 800px;
   width: 100%;
-  position: relative;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.movie-poster {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 20px;
+  position: relative;
 }
 
 .close-button {
@@ -113,15 +109,36 @@ export default {
 
 .infos {
   display: flex;
-  flex-direction: column;
+  margin-top: 50px;
+}
+
+.movie-poster {
+  max-width: 200px;
+  height: auto;
+  margin-right: 40px;
+  margin-left: 40px;
+}
+
+.details {
+  flex: 1;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 5px 20px;
+  align-items: baseline;
+  margin-left: 100px;
 }
 
 .detail-item {
-  margin-bottom: 10px;
+  display: contents;
 }
 
 .detail-title {
   font-weight: bold;
+  text-align: left;
+  padding-right: 10px;
+}
+
+.detail-value {
+  text-align: left;
 }
 </style>
-  

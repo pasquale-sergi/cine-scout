@@ -175,42 +175,52 @@ export default {
 </script>
   
   <style scoped>
+.infos {
+  display: flex;
+  margin-top: 50px;
+}
+
+.movie-poster {
+  max-width: 200px;
+  height: auto;
+  margin-right: 40px;
+  margin-left: 40px;
+}
+
 .details {
+  flex: 1;
   display: grid;
-  grid-template-columns: auto 1fr; /* Two columns: one for the title and one for the value */
-  gap: 5px; /* Space between columns */
+  grid-template-columns: max-content 1fr;
+  gap: 5px 20px;
+  align-items: baseline;
   margin-left: 60px;
+  margin-top: 30px;
 }
 
 .detail-item {
-  display: contents; /* Makes child elements align to the grid layout */
+  display: contents;
 }
 
 .detail-title {
   font-weight: bold;
-  grid-column: 1; /* Align title in the first column */
+  text-align: left;
+  padding-right: 10px;
+}
+
+.detail-value {
+  text-align: left;
+}
+.detail-item span:nth-child(2) {
+  grid-column: 2;
 }
 
 .detail-item span:nth-child(2) {
   grid-column: 2; /* Align value in the second column */
 }
 
-.movie-poster {
-  max-width: 200px;
-  height: auto;
-  margin-left: 60px;
-}
-
 .home-page {
   max-width: 800px;
   margin: 0 auto;
-}
-
-.infos {
-  display: flex;
-  margin-top: 40px;
-  margin-bottom: 40px;
-  justify-content: center;
 }
 
 .suggestion-options,
