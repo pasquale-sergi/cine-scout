@@ -66,5 +66,11 @@ public class MovieController {
         return ResponseEntity.noContent().build(); // Returning 204 No Content
     }
 
+    @PostMapping("/random/genre")
+    public ResponseEntity<Movie> getMovieWithGenre(@RequestParam String genre) throws IOException {
+        Movie movie = movieService.getMovieBasedOnGenre(genre);
+        return ResponseEntity.ok().body(movie);
+    }
+
 
 }

@@ -55,6 +55,24 @@ public class GenresData {
             new GenresData(37, "Western")
     ));
 
+    public Integer getGenreId(String genre) {
+        // Trim the genre to remove any extra spaces
+        genre = genre.trim();
+
+        System.out.println("Searching for genre: '" + genre + "'");
+
+        for (GenresData g : GENRES) {
+            // Using equalsIgnoreCase directly, without converting genre names to lowercase
+            if (genre.equalsIgnoreCase(g.getName())) {
+                System.out.println("Found matching genre: " + g.getName() + " with ID: " + g.getId());
+                return g.getId();
+            }
+        }
+
+        System.out.println("No matching genre found for: '" + genre + "'");
+        return null;
+    }
+
     // Optional: Override equals and hashCode for better collection management
     @Override
     public boolean equals(Object o) {

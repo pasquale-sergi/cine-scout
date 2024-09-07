@@ -23,6 +23,8 @@
           @rate-movie="rateMovie"
           @mark-watched="markAsWatched"
           @next-movie="getNextMovie"
+          @get-suggestion-by-genre="getSuggestionByGenre"
+          @my-films="showMyFilms"
         />
         <my-films
           v-else-if="currentPage === 'myFilms'"
@@ -121,63 +123,41 @@ export default {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-        console.log("Movie Data:", data);
+        const movieData = await response.json();
+        const [trailerUrl, platforms] = await Promise.all([
+          fetchTrailer(movieData.title),
+          fetchStreamingPlatforms(movieData.id, userJWT),
+        ]);
 
-        // Fetch trailer from YouTube
-        const trailerResponse = await axios.get(
-          "https://www.googleapis.com/youtube/v3/search",
-          {
-            params: {
-              part: "snippet",
-              q: `${data.title} official trailer`,
-              key: process.env.VUE_APP_YOUTUBE_API_KEY,
-              type: "video",
-              maxResults: 1,
-            },
-          }
-        );
-
-        const trailer = trailerResponse.data.items[0];
-        const trailerUrl = `https://www.youtube.com/embed/${trailer.id.videoId}`;
-
-        //fetch platforms
-        const platformsData = await fetch(
-          `http://localhost:8080/movie/${data.id}/streaming-platforms`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${userJWT.value}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        const platforms = await platformsData.json();
-
-        //image formatting
-        const imagePath = data.poster_path;
-        const baseUrl = "https://image.tmdb.org/t/p/w500";
-        const fullImageUrl = `${baseUrl}${imagePath}`;
-
-        currentMovie.value = {
-          id: data.id,
-          title: data.title,
-          description: data.overview,
-          image: fullImageUrl,
-          genre: data.genres,
-          rating: data.vote_average,
-          release_date: data.release_date,
-          runtime: data.runtime,
-          original_language: data.original_language,
-          genres: data.genres,
-          trailer: trailerUrl,
-          platforms: Array.isArray(platforms) ? platforms : [],
-        };
-
-        console.log("Current Movie Infos: ", currentMovie.value.platformName);
+        currentMovie.value = formatMovieData(movieData, trailerUrl, platforms);
       } catch (error) {
         console.error("Error fetching movie suggestion:", error);
+      }
+    };
+
+    const getSuggestionByGenre = async (genre) => {
+      try {
+        console.log("Passing parameter genre:", genre.genre);
+        const response = await fetch(
+          `http://localhost:8080/movie/random/genre?genre=${genre.genre}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${userJWT.value}`,
+            },
+          }
+        );
+
+        const movieData = await response.json();
+        const [trailerUrl, platforms] = await Promise.all([
+          fetchTrailer(movieData.title),
+          fetchStreamingPlatforms(movieData.id, userJWT),
+        ]);
+
+        currentMovie.value = formatMovieData(movieData, trailerUrl, platforms);
+      } catch (error) {
+        console.error("Error retrieving movie with genre selection");
       }
     };
 
@@ -303,6 +283,55 @@ export default {
       }
     };
 
+    const fetchTrailer = async (movieTitle) => {
+      const response = await axios.get(
+        "https://www.googleapis.com/youtube/v3/search",
+        {
+          params: {
+            part: "snippet",
+            q: `${movieTitle} official trailer`,
+            key: process.env.VUE_APP_YOUTUBE_API_KEY,
+            type: "video",
+            maxResults: 1,
+          },
+        }
+      );
+      const trailer = response.data.items[0];
+      return `https://www.youtube.com/embed/${trailer.id.videoId}`;
+    };
+
+    const fetchStreamingPlatforms = async (movieId, userJWT) => {
+      const response = await fetch(
+        `http://localhost:8080/movie/${movieId}/streaming-platforms`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${userJWT.value}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return await response.json();
+    };
+
+    const formatMovieData = (movieData, trailerUrl, platforms) => {
+      const baseUrl = "https://image.tmdb.org/t/p/w500";
+      return {
+        id: movieData.id,
+        title: movieData.title,
+        description: movieData.overview,
+        image: `${baseUrl}${movieData.poster_path}`,
+        genre: movieData.genres,
+        rating: movieData.vote_average,
+        release_date: movieData.release_date,
+        runtime: movieData.runtime,
+        original_language: movieData.original_language,
+        genres: movieData.genres,
+        trailer: trailerUrl,
+        platforms: Array.isArray(platforms) ? platforms : [],
+      };
+    };
+
     onMounted(() => {
       // Check if user is already logged in (e.g., from localStorage)
       const token = localStorage.getItem("userToken");
@@ -332,6 +361,7 @@ export default {
       getSavedMovies,
       savedMovies,
       deleteMovie,
+      getSuggestionByGenre,
     };
   },
 };

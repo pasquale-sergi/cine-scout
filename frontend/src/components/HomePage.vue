@@ -2,22 +2,21 @@
   <div class="home-page">
     <div v-if="!movie" class="suggestion-options">
       <h2>Welcome back! What kind of movie are you in the mood for?</h2>
-      <button @click="getRandomSuggestion">Surprise Me!</button>
+      <button @click="getRandomSuggestion">Surprise me!</button>
       <button @click="showGenreSelection">I have a genre in mind</button>
     </div>
 
     <div v-if="showingGenreSelect" class="genre-selection">
       <h3>Select a genre:</h3>
       <select v-model="selectedGenre">
-        <option value="action">Action</option>
-        <option value="comedy">Comedy</option>
-        <option value="drama">Drama</option>
-        <option value="sciFi">Sci-Fi</option>
-        <!-- Add more genres as needed -->
+        <option v-for="genre of genres" :key="genre" :value="genre">
+          {{ genre }}
+        </option>
       </select>
       <button @click="getSuggestionByGenre">Get Suggestion</button>
     </div>
-    <div v-if="movie" class="movie-suggestion">
+
+    <div v-if="isMovie && movie" class="movie-suggestion">
       <h2>{{ movie.title }}</h2>
       <p>{{ movie.description }}</p>
       <div class="infos">
@@ -48,7 +47,11 @@
           </div>
           <div class="detail-item">
             <span class="detail-title">Genre:</span>
-            <span>{{ movie.genre.map((g) => g.name).join(", ") }}</span>
+            <span>{{
+              movie.genre && movie.genre.length
+                ? movie.genre.map((g) => g.name).join(", ")
+                : "N/A"
+            }}</span>
           </div>
           <div class="detail-item" v-if="movie.rating != null">
             <span class="detail-title">Rating:</span>
@@ -57,7 +60,9 @@
           <div class="detail-item">
             <span class="detail-title"> Platforms: </span>
             <span>{{
-              movie.platforms.map((p) => p.provider_name).join(", ")
+              movie.platforms && movie.platforms.length
+                ? movie.platforms.map((p) => p.provider_name).join(", ")
+                : "N/A"
             }}</span>
           </div>
         </div>
@@ -73,6 +78,9 @@
           I've already seen this, next please!
         </button>
       </div>
+    </div>
+    <div v-if="!isMovie">
+      <p>{{ message }}</p>
     </div>
     <!-- Star Rating Popup -->
     <div v-if="showRatingPopup" class="rating-popup">
@@ -99,36 +107,95 @@
     <div class="mark-pop-up" v-if="showMarkPopUp">
       <div>
         <h2>Movie added to your films.</h2>
-        <button @click="showMarkPopUp = false">Close</button>
+        <div class="buttons">
+          <button @click="showMarkPopUp = false">Close</button>
+          <button @click="toMyFilms">My films</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 <script>
-import { ref } from "vue";
+import { ref, toRef, watch } from "vue";
 
 export default {
   name: "HomePage",
-  props: ["movie"],
-  emits: ["get-suggestion", "rate-movie", "mark-watched", "next-movie"],
+  props: {
+    movie: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
+  emits: [
+    "get-suggestion",
+    "rate-movie",
+    "mark-watched",
+    "next-movie",
+    "get-suggestion-by-genre",
+    "my-films",
+  ],
   setup(props, { emit }) {
+    const currentMovie = toRef(props, "movie");
+
     const showingGenreSelect = ref(false);
     const selectedGenre = ref("");
     const showMarkPopUp = ref(false);
     const showRatingPopup = ref(false);
     const currentRating = ref(0);
     const hoverRating = ref(0);
+    const isLoading = ref(false);
+    const message = ref(null);
+    const isMovie = ref(null);
+    const apiCallInProgress = ref(false);
+
+    const genres = [
+      "Action",
+      "Adventure",
+      "Comedy",
+      "Crime",
+      "Documentary",
+      "Drama",
+      "Family",
+      "Fantasy",
+      "History",
+      "Horror",
+      "Music",
+      "Mistery",
+      "Romance",
+      "Science Fiction",
+      "TV movie",
+      "Thriller",
+      "War",
+      "Western",
+    ];
 
     const getRandomSuggestion = () => {
+      apiCallInProgress.value = true;
+
       emit("get-suggestion");
     };
+    watch(currentMovie, () => {
+      if (apiCallInProgress.value) {
+        // Only handle movie when API is called
+        if (!currentMovie.value || currentMovie.value.id === undefined) {
+          isMovie.value = false;
+          message.value =
+            "Sorry but we haven't found any movie. Please try again.";
+        } else {
+          isMovie.value = true;
+        }
+        apiCallInProgress.value = false; // Reset the flag after handling the API response
+      }
+    });
 
     const showGenreSelection = () => {
       showingGenreSelect.value = true;
     };
 
     const getSuggestionByGenre = () => {
-      emit("get-suggestion", { genre: selectedGenre.value });
+      apiCallInProgress.value = true;
+
+      emit("get-suggestion-by-genre", { genre: selectedGenre.value });
       showingGenreSelect.value = false;
     };
 
@@ -154,6 +221,10 @@ export default {
       emit("next-movie");
     };
 
+    const toMyFilms = () => {
+      emit("my-films");
+    };
+
     return {
       showingGenreSelect,
       selectedGenre,
@@ -169,6 +240,12 @@ export default {
       rateMovie,
       markAsWatched,
       getNextMovie,
+      genres,
+      toMyFilms,
+      isLoading,
+      currentMovie,
+      message,
+      isMovie,
     };
   },
 };
@@ -330,5 +407,39 @@ select {
 
 .star-filled {
   color: gold;
+}
+
+.buttons {
+  display: flex;
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #db6109;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 </style>
