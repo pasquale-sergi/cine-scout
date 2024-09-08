@@ -72,6 +72,9 @@
       </div>
 
       <div class="user-actions">
+        <button @click="addToCurrentlyWatching">
+          Add to currently watching
+        </button>
         <button @click="showRatingPopup = true">Rate this movie</button>
         <button @click="markAsWatched">Mark as Watched</button>
         <button @click="getNextMovie">
@@ -104,12 +107,23 @@
         <button @click="closeRatingPopup">Close</button>
       </div>
     </div>
+    <!--start mark pop up-->
     <div class="mark-pop-up" v-if="showMarkPopUp">
       <div>
         <h2>Movie added to your films.</h2>
         <div class="buttons">
           <button @click="showMarkPopUp = false">Close</button>
           <button @click="toMyFilms">My films</button>
+        </div>
+      </div>
+    </div>
+    <!--start add to currently watching pop up-->
+    <div class="mark-pop-up" v-if="showCWPopUp">
+      <div>
+        <h2>Movie added to the list.</h2>
+        <div class="buttons">
+          <button @click="showCWPopUp = false">Close</button>
+          <button @click="toMyCurrentlyWatching">My Currently Watching</button>
         </div>
       </div>
     </div>
@@ -133,6 +147,8 @@ export default {
     "next-movie",
     "get-suggestion-by-genre",
     "my-films",
+    "add-to-currently-watching",
+    "to-my-currently-watching",
   ],
   setup(props, { emit }) {
     const currentMovie = toRef(props, "movie");
@@ -147,6 +163,7 @@ export default {
     const message = ref(null);
     const isMovie = ref(null);
     const apiCallInProgress = ref(false);
+    const showCWPopUp = ref(false);
 
     const genres = [
       "Action",
@@ -203,6 +220,11 @@ export default {
       showRatingPopup.value = true;
     };
 
+    const addToCurrentlyWatching = () => {
+      showCWPopUp.value = true;
+      emit("add-to-currently-watching");
+    };
+
     const closeRatingPopup = () => {
       showRatingPopup.value = false;
     };
@@ -223,6 +245,10 @@ export default {
 
     const toMyFilms = () => {
       emit("my-films");
+    };
+
+    const toMyCurrentlyWatching = () => {
+      emit("to-my-currently-watching");
     };
 
     return {
@@ -246,6 +272,9 @@ export default {
       currentMovie,
       message,
       isMovie,
+      addToCurrentlyWatching,
+      showCWPopUp,
+      toMyCurrentlyWatching,
     };
   },
 };

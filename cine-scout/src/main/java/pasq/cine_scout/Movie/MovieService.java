@@ -7,26 +7,30 @@ import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Service;
 
 import pasq.cine_scout.ApplicationUser.ApplicationUser;
 import pasq.cine_scout.ApplicationUser.UserRepository;
 import pasq.cine_scout.ApplicationUser.UserService;
+import pasq.cine_scout.CurrentlyWatching.CurrentlyWatching;
+import pasq.cine_scout.CurrentlyWatching.CurrentlyWatchingDto;
+import pasq.cine_scout.CurrentlyWatching.CurrentlyWatchingRepository;
 import pasq.cine_scout.SavedMovies.SavedMovies;
 import pasq.cine_scout.SavedMovies.SavedMoviesRepository;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Random;
+import java.lang.management.MonitorInfo;
+import java.sql.Timestamp;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class MovieService {
     @Autowired
     private MovieRepository movieRepository;
-
+    @Autowired
+    private CurrentlyWatchingRepository currentlyWatchingRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -186,24 +190,24 @@ public class MovieService {
                             throw new RuntimeException("No movie results found");
                         }
                         JsonNode movieNode = null;
-                        int i =0;
+                        int i = 0;
                         boolean genresMatches = false;
-                        while (i<10 && !genresMatches) {
-                            System.out.println("SEARCH "+ i + " *************");
+                        while (i < 10 && !genresMatches) {
+                            System.out.println("SEARCH " + i + " *************");
                             int randomIndex = new Random().nextInt(resultsNode.size());
                             movieNode = resultsNode.get(randomIndex);
                             System.out.println("movie node : " + movieNode);
                             JsonNode genres = movieNode.get("genre_ids");
                             System.out.println("genre node: " + genres);
                             //i need to retrieve the genre id
-                            Integer genreId =findGenreId(genre);
+                            Integer genreId = findGenreId(genre);
                             if (genreId == null) {
                                 throw new RuntimeException("Invalid Genre: '" + genre + "'");
                             }
                             //we know the passed genre name is valid
                             //now we look for a movie with the genre
                             for (JsonNode g : genres) {
-                                System.out.println("comparing"+g+"  with: "+genreId);
+                                System.out.println("comparing" + g + "  with: " + genreId);
                                 if (g.asInt() == genreId) {
                                     // Genre matches
                                     genresMatches = true;
@@ -213,7 +217,7 @@ public class MovieService {
                             i++;
                         }
 
-                        if(!genresMatches){
+                        if (!genresMatches) {
                             throw new RuntimeException("Couldn't find a movie with the genre you want. Please try again or change genre.");
                         }
                         Movie movie = null;
@@ -222,7 +226,7 @@ public class MovieService {
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }
-                        System.out.println("Movie in the first call: "+movie);
+                        System.out.println("Movie in the first call: " + movie);
                         return movie;
                     }).join();
 
@@ -246,7 +250,61 @@ public class MovieService {
         }
     }
 
+    public CurrentlyWatching addMovieToWatchingSession(String username, Movie movie){
+        ApplicationUser user = userRepository.findByUsername(username).get();
+        //I know the user exist cause its logged in but check anyway
+        if(user.getUserId()==null) throw new RuntimeException("User not found with given username");
+
+        //check if the movie is already in db or save it, then add to the currently watching table
+        Integer movieId = movie.getMovieId();
+        Optional<Movie> existMovie = movieRepository.findMovieByMovieId(movieId);
+        Movie savedMovie;
+        if(existMovie.isEmpty()) {
+            savedMovie = movieRepository.save(
+            Movie.builder()
+                    .title(movie.getTitle())
+                    .movieId(movie.getMovieId())
+                    .overview(movie.getOverview())
+                    .release_date(movie.getRelease_date())
+                    .genres(movie.getGenres())
+                    .poster_path(movie.getPoster_path())
+                    .runtime(movie.getRuntime())
+                    .vote_average(movie.getVote_average())
+                    .original_language(movie.getOriginal_language())
+                    .build());
+        }else{
+            savedMovie=existMovie.get();
+        }
+        //now we can save the movie in the section
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        CurrentlyWatching currentMovie = new CurrentlyWatching();
+        currentMovie.setUser(user);
+        currentMovie.setMovie(savedMovie);
+        currentMovie.setDate(timestamp);
+        currentlyWatchingRepository.save(currentMovie);
+
+        return currentMovie;
 
 
+    }
 
+    public List<CurrentlyWatchingDto> getCurrentlyWatching(String username){
+        ApplicationUser user = userRepository.findByUsername(username).get();
+
+        List<CurrentlyWatching> currentlyWatching = currentlyWatchingRepository.findByUser(user);
+        //List<Movie> movies =  currentlyWatchings.stream().map(CurrentlyWatching::getMovie).collect(Collectors.toList());
+        List<CurrentlyWatchingDto> movies = new ArrayList<>();
+        CurrentlyWatchingDto dto =  new CurrentlyWatchingDto();
+        for(CurrentlyWatching movie : currentlyWatching){
+            movies.add(dto.from(movie));
+        }
+        return movies;
+    }
+
+    public void deleteMusicFromCurrentlyWatching(String username, Integer movieId){
+        ApplicationUser user = userRepository.findByUsername(username).get();
+        Movie movie = movieRepository.findById(movieId).get();
+        CurrentlyWatching currentMovie = currentlyWatchingRepository.findByUserAndMovie(user,movie);
+        currentlyWatchingRepository.deleteById(currentMovie.getId());
+    }
 }

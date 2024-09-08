@@ -5,6 +5,7 @@
       <nav v-if="isLoggedIn">
         <button @click="showHome">Home</button>
         <button @click="showMyFilms">My Films</button>
+        <button @click="showCurrentlyWatching">Currently Watching</button>
         <button @click="logout">Logout</button>
       </nav>
     </header>
@@ -19,18 +20,24 @@
           v-if="currentPage === 'home'"
           @get-suggestion="getSuggestion"
           :movie="currentMovie"
-          :username="sessionUserData"
           @rate-movie="rateMovie"
           @mark-watched="markAsWatched"
           @next-movie="getNextMovie"
           @get-suggestion-by-genre="getSuggestionByGenre"
           @my-films="showMyFilms"
+          @add-to-currently-watching="addToCurrentlyWatching"
+          @to-my-currently-watching="showCurrentlyWatching"
         />
         <my-films
           v-else-if="currentPage === 'myFilms'"
           :savedMovies="savedMovies"
           :username="sessionUserData"
           @delete-movie="deleteMovie"
+        />
+        <currently-watching
+          v-else-if="currentPage === 'CurrentlyWatching'"
+          :currentlyWatching="currentlyWatching"
+          @delete-movie-from-cw="deleteMovieFromCW"
         />
       </template>
     </main>
@@ -46,6 +53,7 @@ import { ref, onMounted } from "vue";
 import LoginForm from "./components/LoginForm.vue";
 import HomePage from "./components/HomePage.vue";
 import MyFilms from "./components/MyFilms.vue";
+import CurrentlyWatching from "./components/CurrentlyWatching.vue";
 import axios from "axios";
 
 export default {
@@ -54,6 +62,7 @@ export default {
     LoginForm,
     HomePage,
     MyFilms,
+    CurrentlyWatching,
   },
   setup() {
     const isLoggedIn = ref(false);
@@ -63,6 +72,7 @@ export default {
     const userJWT = ref(null);
     const sessionUserData = ref(null);
     const savedMovies = ref([]);
+    const currentlyWatching = ref([]);
 
     const handleLogin = (userData) => {
       // In a real app, you'd verify the login with your backend
@@ -74,6 +84,10 @@ export default {
       localStorage.setItem("userToken", userData.token);
       localStorage.setItem("username", userData.username);
       console.log("Username: ", sessionUserData.value);
+    };
+    const showCurrentlyWatching = () => {
+      currentPage.value = "CurrentlyWatching";
+      getCurrentWatching();
     };
 
     const logout = () => {
@@ -137,7 +151,6 @@ export default {
 
     const getSuggestionByGenre = async (genre) => {
       try {
-        console.log("Passing parameter genre:", genre.genre);
         const response = await fetch(
           `http://localhost:8080/movie/random/genre?genre=${genre.genre}`,
           {
@@ -165,6 +178,70 @@ export default {
       getSuggestion();
     };
 
+    const addToCurrentlyWatching = async () => {
+      if (
+        currentMovie.value &&
+        !currentlyWatching.value.find((m) => m.id === currentMovie.value.id)
+      ) {
+        currentlyWatching.value.push({ ...currentMovie.value });
+
+        const bodyRequest = {
+          username: sessionUserData.value,
+          movie: {
+            movieId: currentMovie.value.id,
+            title: currentMovie.value.title,
+            overview: currentMovie.value.description,
+            release_date: currentMovie.value.release_date,
+            runtime: currentMovie.value.runtime,
+            vote_average: currentMovie.value.rating,
+            poster_path: currentMovie.value.image,
+            genres: currentMovie.value.genre,
+            original_language: currentMovie.value.original_language,
+          },
+        };
+        try {
+          const response = await fetch(
+            "http://localhost:8080/movie/currently-watching",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${userJWT.value}`,
+              },
+              body: JSON.stringify(bodyRequest),
+            }
+          );
+
+          const data = await response.json();
+          console.log("currently watching: ", data);
+        } catch (error) {
+          console.error("Error with the add currently watching request");
+        }
+      }
+    };
+
+    const getCurrentWatching = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/movie/currently-watching?username=${sessionUserData.value}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${userJWT.value}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+        console.log("fetching currently watching: ", data);
+        currentlyWatching.value = data;
+        console.log("after assignig to ref: ", currentlyWatching.value);
+      } catch (error) {
+        console.error("Error retrieving currently watching movies");
+      }
+    };
+
     const rateMovie = (rating) => {
       if (currentMovie.value) {
         currentMovie.value.userRating = rating;
@@ -179,8 +256,6 @@ export default {
       ) {
         watchedMovies.value.push({ ...currentMovie.value });
 
-        console.log("currentmovie: ", currentMovie);
-        // Prepare the request body
         const requestBody = {
           username: sessionUserData.value,
           movie: {
@@ -198,8 +273,6 @@ export default {
             // production_countries: currentMovie.value.production_countries,
           },
         };
-
-        console.log("bodyrequest: ", requestBody);
 
         try {
           const response = await fetch("http://localhost:8080/movie/save", {
@@ -283,6 +356,41 @@ export default {
       }
     };
 
+    const deleteMovieFromCW = async (movie) => {
+      try {
+        if (!movie || !movie.id) {
+          console.error("Movie object or movie ID is not provided.");
+          return;
+        }
+        const response = await fetch(
+          `http://localhost:8080/movie/currently-watching/delete?username=${sessionUserData.value}&movieId=${movie.id}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${userJWT.value}`,
+            },
+            body: JSON.stringify(movie),
+          }
+        );
+
+        if (response.status === 200) {
+          console.log("Delete successful: No content returned.");
+        } else if (response.ok) {
+          const data = await response.json();
+          console.log("Delete successful:", data);
+        } else {
+          throw new Error(`Failed to delete movie. Status: ${response.status}`);
+        }
+        //update UI
+        currentlyWatching.value = currentlyWatching.value.filter(
+          (currently) => currently.id !== movie.id
+        );
+      } catch (error) {
+        console.error("Error deleting movie from currently watching");
+      }
+    };
+
     const fetchTrailer = async (movieTitle) => {
       const response = await axios.get(
         "https://www.googleapis.com/youtube/v3/search",
@@ -362,6 +470,11 @@ export default {
       savedMovies,
       deleteMovie,
       getSuggestionByGenre,
+      addToCurrentlyWatching,
+      currentlyWatching,
+      showCurrentlyWatching,
+      getCurrentWatching,
+      deleteMovieFromCW,
     };
   },
 };

@@ -1,11 +1,14 @@
 package pasq.cine_scout.Movie;
 
+import org.hibernate.annotations.OnDelete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pasq.cine_scout.ApplicationUser.ApplicationUser;
 import pasq.cine_scout.ApplicationUser.UserRepository;
+import pasq.cine_scout.CurrentlyWatching.CurrentlyWatching;
+import pasq.cine_scout.CurrentlyWatching.CurrentlyWatchingDto;
 import pasq.cine_scout.SavedMovies.SavedMovies;
 import pasq.cine_scout.SavedMovies.SavedMoviesRepository;
 import pasq.cine_scout.SavedMovies.SavedMoviesRequest;
@@ -14,6 +17,7 @@ import pasq.cine_scout.SavedMovies.SavedMoviesService;
 
 import javax.swing.text.html.Option;
 import java.io.IOException;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,5 +76,20 @@ public class MovieController {
         return ResponseEntity.ok().body(movie);
     }
 
+    @PostMapping("/currently-watching")
+    public ResponseEntity<CurrentlyWatchingDto> setMovieToCurrentlyWatching(@RequestBody SavedMoviesRequest request){
+        CurrentlyWatching currentMovie = movieService.addMovieToWatchingSession(request.getUsername(), request.getMovie());
+        CurrentlyWatchingDto dto = new CurrentlyWatchingDto();
+        return ResponseEntity.ok().body(dto.from(currentMovie));
+    }
+    @GetMapping("/currently-watching")
+    public ResponseEntity<List<CurrentlyWatchingDto>> getUserCurrentlyWatching(@RequestParam String username){
+        List<CurrentlyWatchingDto> movies = movieService.getCurrentlyWatching(username);
+        return ResponseEntity.ok().body(movies);
+    }
 
+    @DeleteMapping("/currently-watching/delete")
+    public void deleteFromCurrentlyWatching(@RequestParam Integer movieId, @RequestParam String username){
+        movieService.deleteMusicFromCurrentlyWatching(username, movieId);
+    }
 }
