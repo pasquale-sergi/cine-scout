@@ -2,7 +2,9 @@
   <div v-if="isVisible" class="popup-overlay" @click.self="closePopup">
     <div class="popup-content">
       <button class="close-button" @click="closePopup">×</button>
-      <h2>{{ movie.title }}</h2>
+      <div class="title">
+        <h2>{{ movie.title }}</h2>
+      </div>
       <p>{{ movie.overview }}</p>
       <div class="infos">
         <img
@@ -74,13 +76,17 @@ export default {
 </script>
   
   <style scoped>
+.title {
+  display: flex;
+  justify-content: center;
+}
 .popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -88,9 +94,9 @@ export default {
 }
 
 .popup-content {
-  background: white;
+  background: rgba(255, 255, 255, 0.907);
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 10px;
   max-width: 800px;
   width: 100%;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);

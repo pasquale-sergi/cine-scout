@@ -26,14 +26,31 @@ public class SavedMoviesService {
 
     @Transactional
     public SavedMovies saveMovie(String username, Movie movie) {
+        //debug
+        System.out.println("reecived movie ready to be saved with details: "+movie);
         // Find the user
         ApplicationUser user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
 
         // Check if the movie already exists in the database
         Movie savedMovie = movieRepository.findByTitle(movie.getTitle())
+                .map(existingMovie -> {
+                    // If the movie exists, update its details with new values
+                    existingMovie.setRating(movie.getRating());
+                    /*
+                    existingMovie.setGenres(movie.getGenres());
+                    existingMovie.setOverview(movie.getOverview());
+                    existingMovie.setPoster_path(movie.getPoster_path());
+                    existingMovie.setVote_average(movie.getVote_average());
+                    existingMovie.setOriginal_language(movie.getOriginal_language());
+                    existingMovie.setRuntime(movie.getRuntime());
+                    existingMovie.setRelease_date(movie.getRelease_date());
+
+                     */
+                    return movieRepository.save(existingMovie); // Save the updated movie
+                })
                 .orElseGet(() -> {
-                    // If the movie doesn't exist, save it
+                    // If the movie doesn't exist, save it as new
                     Movie newMovie = Movie.builder()
                             .movieId(movie.getMovieId())
                             .title(movie.getTitle())
@@ -48,6 +65,7 @@ public class SavedMoviesService {
                             .build();
                     return movieRepository.save(newMovie);
                 });
+
 
         // Check if the user has already saved this movie
         Optional<SavedMovies> existingSavedMovie = savedMovieRepository.findByUserAndMovie(user, savedMovie);

@@ -127,16 +127,16 @@ export default {
 }
 
 button {
-  background-color: #948540;
+  background-color: #407c94;
   color: white;
   border: none;
   padding: 5px 10px;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   margin-right: 7px;
 }
 
 button:hover {
-  background-color: #524f18;
+  background-color: #13444f;
 }
 </style>

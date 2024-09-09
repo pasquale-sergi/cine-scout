@@ -1,16 +1,24 @@
 <template>
   <div id="app">
-    <header>
+    <header class="header">
       <h1 class="app-title">🎬 Movie of the Day</h1>
-      <nav v-if="isLoggedIn">
-        <button @click="showHome">Home</button>
-        <button @click="showMyFilms">My Films</button>
-        <button @click="showCurrentlyWatching">Currently Watching</button>
-        <button @click="logout">Logout</button>
+      <nav v-if="isLoggedIn" class="navbar">
+        <div class="nav-links">
+          <button @click="showHome" class="nav-button">Home</button>
+          <button @click="showMyFilms" class="nav-button">My Films</button>
+          <button @click="showCurrentlyWatching" class="nav-button">
+            Currently Watching
+          </button>
+        </div>
+        <div class="auth-links">
+          <button @click="logout" class="nav-button logout-button">
+            Logout
+          </button>
+        </div>
       </nav>
     </header>
 
-    <main>
+    <main class="main-content">
       <template v-if="!isLoggedIn">
         <login-form @login="handleLogin" />
       </template>
@@ -21,7 +29,7 @@
           @get-suggestion="getSuggestion"
           :movie="currentMovie"
           @rate-movie="rateMovie"
-          @mark-watched="markAsWatched"
+          @save-movie="saveMovieFromCw"
           @next-movie="getNextMovie"
           @get-suggestion-by-genre="getSuggestionByGenre"
           @my-films="showMyFilms"
@@ -38,16 +46,17 @@
           v-else-if="currentPage === 'CurrentlyWatching'"
           :currentlyWatching="currentlyWatching"
           @delete-movie-from-cw="deleteMovieFromCW"
+          @save-movie="saveMovieFromCw"
+          @my-films="showMyFilms"
         />
       </template>
     </main>
 
-    <footer>
+    <footer class="footer">
       <p>&copy; 2024 Movie of the Day. All rights reserved.</p>
     </footer>
   </div>
 </template>
-
 <script>
 import { ref, onMounted } from "vue";
 import LoginForm from "./components/LoginForm.vue";
@@ -118,6 +127,7 @@ export default {
 
     //put criteria = {} inside func parameter
     const getSuggestion = async () => {
+      console.log("sending the movie request");
       // In a real app, you'd call your backend API here
       try {
         if (!userJWT.value) {
@@ -142,6 +152,7 @@ export default {
           fetchTrailer(movieData.title),
           fetchStreamingPlatforms(movieData.id, userJWT),
         ]);
+        console.log("still good");
 
         currentMovie.value = formatMovieData(movieData, trailerUrl, platforms);
       } catch (error) {
@@ -242,14 +253,14 @@ export default {
       }
     };
 
-    const rateMovie = (rating) => {
+    const rateMovie = async (rating) => {
       if (currentMovie.value) {
         currentMovie.value.userRating = rating;
-        // In a real app, you'd send this rating to your backend
       }
     };
 
     const markAsWatched = async () => {
+      console.log("movie right before the save:", currentMovie.value);
       if (
         currentMovie.value &&
         !watchedMovies.value.find((m) => m.id === currentMovie.value.id)
@@ -287,13 +298,20 @@ export default {
           if (!response.ok) {
             throw new Error("Network response was not ok");
           }
-
+          console.log("request sent with rating:", requestBody.movie.rating);
           const data = await response.json();
           console.log("Saved Successfully. Data: ", data);
         } catch (error) {
           console.error("Error saving the movie:", error);
         }
       }
+    };
+
+    const saveMovieFromCw = async (movie, rating) => {
+      currentMovie.value = movie;
+      await rateMovie(rating);
+
+      markAsWatched();
     };
 
     const getSavedMovies = async () => {
@@ -409,6 +427,7 @@ export default {
     };
 
     const fetchStreamingPlatforms = async (movieId, userJWT) => {
+      console.log("inside streaming");
       const response = await fetch(
         `http://localhost:8080/movie/${movieId}/streaming-platforms`,
         {
@@ -419,6 +438,7 @@ export default {
           },
         }
       );
+      console.log("about to exit");
       return await response.json();
     };
 
@@ -475,52 +495,117 @@ export default {
       showCurrentlyWatching,
       getCurrentWatching,
       deleteMovieFromCW,
+      saveMovieFromCw,
     };
   },
 };
 </script>
 
-<style>
-#app {
+<style scoped>
+:root {
+  --primary-color: #1a1a1a;
+  --secondary-color: #f0f0f0;
+  --accent-color: #ffd700;
+  --text-color: #333;
+  --button-hover: #e0e0e0;
+}
+
+body {
   font-family: "Arial", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: var(--secondary-color);
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  background-color: var(--primary-color);
+  padding: 1rem;
+  color: var(--secondary-color);
 }
 
 .app-title {
-  font-size: 2.5em;
-  color: #a85d12f4;
-  margin-bottom: 20px;
+  font-size: 1.8rem;
+  margin: 0 0 1rem 0;
+  text-align: center;
 }
 
-header {
-  margin-bottom: 30px;
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
 }
 
-nav button {
-  margin: 0 10px;
-  padding: 10px 20px;
-  font-size: 1em;
-  cursor: pointer;
-  background-color: #db6109;
-  color: white;
+.nav-links,
+.auth-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-button {
+  background-color: transparent;
   border: none;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+  color: var(--secondary-color);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.3s ease;
+  border-radius: 4px;
 }
 
-nav button:hover {
-  background-color: #a36412;
+.nav-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-footer {
-  margin-top: 50px;
-  font-size: 0.9em;
-  color: #666;
+.logout-button {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+}
+
+.logout-button:hover {
+  background-color: #e6c200;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.footer {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  text-align: center;
+  padding: 1rem;
+  margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .navbar,
+  .nav-links,
+  .auth-links {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
 }
 </style>

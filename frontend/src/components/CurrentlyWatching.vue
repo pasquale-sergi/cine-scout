@@ -1,8 +1,15 @@
 <template>
-  <div class="my-films">
-    <h2>My Currently Watching</h2>
+  <div class="home-page">
+    <div class="title">
+      <h2>My Currently Watching</h2>
+    </div>
     <div v-if="currentlyWatching.length > 0" class="film-grid">
-      <div v-for="movie in currentlyWatching" :key="movie.id" class="film-card">
+      <div
+        v-for="movie in currentlyWatching"
+        :key="movie.id"
+        class="movie-suggestion"
+        @click="showMovieDetails(movie)"
+      >
         <img
           v-if="movie.poster_path"
           :src="movie.poster_path"
@@ -10,19 +17,31 @@
           class="movie-poster"
         />
         <h3>{{ movie.title }}</h3>
-        <div class="button-container">
-          <button @click="showMovieDetails(movie)">Show Details</button>
-          <button @click="handleDeleteMovie(movie)" class="delete-button">
-            &times;
+        <div class="button-group">
+          <button @click.stop="handleDeleteMovie(movie)" class="action-button">
+            Remove
+          </button>
+          <button
+            class="action-button"
+            @click.stop="(savedMoviePopUp = true), (this.selectedMovie = movie)"
+          >
+            Save Movie
           </button>
         </div>
       </div>
     </div>
-    <div v-else>
+
+    <div v-else class="message-no-movies">
       <p>You have no movies that you are currently watching.</p>
     </div>
+    <div class="saved-content-popup" v-if="savedMoviePopUp">
+      <rating-system
+        @rate-movie="rateMovie"
+        @mark-watched="saveMovie"
+        @my-films="toMyFilms"
+      ></rating-system>
+    </div>
 
-    <!-- FilmDetails Popup -->
     <film-details
       v-if="selectedMovie"
       :movie="selectedMovie"
@@ -34,11 +53,13 @@
   
   <script>
 import FilmDetails from "./FilmDetails.vue";
+import RatingSystem from "./utils/RatingSystem.vue";
 
 export default {
   name: "CurrentlyWatching",
   components: {
     FilmDetails,
+    RatingSystem,
   },
   props: {
     currentlyWatching: {
@@ -50,11 +71,13 @@ export default {
       required: true,
     },
   },
-  emits: ["delete-movie-from-cw"],
+  emits: ["delete-movie-from-cw", "save-movie", "my-films"],
   data() {
     return {
       selectedMovie: null,
       isPopupVisible: false,
+      savedMoviePopUp: false,
+      rating: null,
     };
   },
   methods: {
@@ -69,24 +92,43 @@ export default {
     handleDeleteMovie(movie) {
       this.$emit("delete-movie-from-cw", movie);
     },
+    saveMovie() {
+      this.$emit("save-movie", this.selectedMovie, this.rating);
+      this.handleDeleteMovie(this.selectedMovie);
+    },
+    rateMovie(rating) {
+      this.rating = rating;
+    },
+    toMyFilms() {
+      this.$emit("my-films");
+    },
   },
 };
 </script>
   
-    
-    <style scoped>
-.my-films {
-  max-width: 1000px;
+  <style scoped>
+.home-page {
+  max-width: 800px;
   margin: 0 auto;
+  padding: 20px;
+}
+.message-no-movies {
+  display: flex;
+  justify-content: center;
+}
+
+.home-tag {
+  margin-top: 60px;
 }
 
 .film-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
+  justify-content: center;
 }
 
-.film-card {
+.movie-suggestion {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -98,69 +140,73 @@ export default {
   padding: 10px;
   position: relative;
 }
-
-.film-card:hover {
+.movie-suggestion:hover {
   transform: translateY(-5px);
-}
-
-.film-card img {
-  width: 100%;
-  height: auto;
-  border-radius: 4px;
-}
-
-.film-card h3 {
-  margin: 10px 0 5px;
-  font-size: 1.1em;
-}
-
-.film-card p {
-  margin: 5px 0;
-  font-size: 0.9em;
-  color: #666;
+  cursor: pointer;
 }
 
 .movie-poster {
-  width: 100%;
-  border-radius: 4px;
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
   margin-bottom: 10px;
 }
 
-button {
-  background-color: #948540;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 7px;
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-button:hover {
-  background-color: #524f18;
+.action-button {
+  padding: 7px 12px;
+  cursor: pointer;
+  background-color: #152576e1;
+  color: rgba(255, 255, 255, 0.93);
+  border: none;
+  border-radius: 12px;
+  transition: background-color 0.3s;
+}
+
+.action-button:hover {
+  background-color: #000043cf;
 }
 
 .delete-button {
   position: absolute;
-  right: -12px;
   top: 5px;
-  background-color: rgba(188, 27, 18, 0.481);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: background-color 0.3s ease;
+  right: -12px;
+  border-radius: 14px;
+  padding: 8px 10px;
+  background-color: #c6413a63;
 }
 
 .delete-button:hover {
-  background-color: rgba(208, 52, 43, 1);
+  background-color: #d0342b;
+}
+
+@media (max-width: 768px) {
+  .film-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .movie-suggestion {
+    width: 100%;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .action-button {
+    width: 100%;
+    margin: 5px 0;
+  }
+}
+.title {
+  display: flex;
+  justify-content: center;
 }
 </style>
