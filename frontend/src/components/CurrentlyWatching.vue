@@ -32,13 +32,14 @@
     </div>
 
     <div v-else class="message-no-movies">
-      <p>You have no movies that you are currently watching.</p>
+      <p>No movies in your watchlist yet. Find something to start watching!</p>
     </div>
     <div class="saved-content-popup" v-if="savedMoviePopUp">
       <rating-system
         @rate-movie="rateMovie"
         @mark-watched="saveMovie"
         @my-films="toMyFilms"
+        @close-rating-pop-up="savedMoviePopUp = false"
       ></rating-system>
     </div>
 
@@ -64,10 +65,6 @@ export default {
   props: {
     currentlyWatching: {
       type: Array,
-      required: true,
-    },
-    deleteMovieFromCW: {
-      type: Function,
       required: true,
     },
   },
@@ -162,7 +159,7 @@ export default {
 .action-button {
   padding: 7px 12px;
   cursor: pointer;
-  background-color: #152576e1;
+  background-color: #1968acf3;
   color: rgba(255, 255, 255, 0.93);
   border: none;
   border-radius: 12px;
@@ -170,7 +167,7 @@ export default {
 }
 
 .action-button:hover {
-  background-color: #000043cf;
+  background-color: #013775cf;
 }
 
 .delete-button {

@@ -37,7 +37,7 @@
       >
         Save without rating
       </button>
-      <button class="close-btn action-button" @click="closeRatingPopup">
+      <button class="close-btn" @click.stop="closeRatingPopup, popUpOff">
         &times;
       </button>
     </div>
@@ -71,9 +71,11 @@ export default {
     };
     const closeRatingPopup = () => {
       showRatingPopup.value = false;
-      //   emit("close-rating-pop-up");
     };
 
+    const popUpOff = () => {
+      emit("close-rating-pop-up");
+    };
     const rateMovie = (rating) => {
       currentRating.value = rating;
 
@@ -82,7 +84,6 @@ export default {
 
     const markAsWatched = () => {
       showMarkPopUp.value = false;
-      console.log(" 2 - emitted the first save mark");
 
       emit("mark-watched");
     };
@@ -101,6 +102,7 @@ export default {
       currentRating,
       toMyFilms,
       showMarkPopUp,
+      popUpOff,
     };
   },
 };
@@ -121,6 +123,23 @@ export default {
 
 .action-button:hover {
   background-color: #13444f;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  color: #13444f4c;
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  padding: 10px 12px;
+  border-radius: 20px;
+}
+
+.close-btn:hover {
+  color: black;
 }
 
 .action-button:disabled {
@@ -144,6 +163,7 @@ export default {
 
 .rating-content,
 .mark-pop-up > div {
+  position: relative;
   background-color: white;
   padding: 20px;
   border-radius: 5px;

@@ -58,6 +58,18 @@ export default {
       showLogin: true,
     });
 
+    const validateEmail = (email) => {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    };
+
+    const validatePassword = (password) => {
+      // At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character
+      const re =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      return re.test(password);
+    };
+
     const login = async () => {
       try {
         const response = await fetch("http://localhost:8080/auth/login", {
@@ -96,13 +108,37 @@ export default {
     };
 
     const signUp = async () => {
-      console.log(password.value);
-      console.log(confirmPassword.value);
+      // Reset error message
+      state.message = "";
+      state.authFailed = false;
+
+      if (!validateEmail(email.value)) {
+        state.authFailed = true;
+        state.message = "Please enter a valid email address.";
+        return;
+      }
+
+      if (!validatePassword(password.value)) {
+        state.authFailed = true;
+        state.message =
+          "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.";
+        return;
+      }
+
       if (password.value !== confirmPassword.value) {
-        state.signingFailed = true;
+        state.authFailed = true;
         state.message = "Passwords do not match.";
         return;
       }
+
+      console.log(
+        "data sending to the backend: " +
+          "username: " +
+          username.value +
+          "email: " +
+          email.value
+      );
+
       try {
         const response = await fetch("http://localhost:8080/auth/sign-up", {
           method: "POST",
@@ -127,10 +163,8 @@ export default {
         state.showLogin = true;
       } catch (error) {
         console.error("Registration failed:", error);
-        state.signingFailed = true;
+        state.authFailed = true;
         state.message = "An error occurred. Please try again.";
-
-        // Here you might want to show an error message to the user
       }
     };
     const toggleForm = () => {
@@ -157,32 +191,77 @@ export default {
 };
 </script>
   
-  <style scoped>
+<style scoped>
 .login-form {
-  max-width: 300px;
-  margin: 0 auto;
+  max-width: 400px;
+  margin: 5% auto;
+  padding: 30px;
+  background-color: #f8f9fa;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  text-align: center;
+}
+
+h2 {
+  color: #343a40;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
 }
 
 input {
-  width: 100%;
   padding: 10px;
   margin: 10px 0;
-  border: 1px solid #ddd;
+  border: 1px solid #ced4da;
   border-radius: 4px;
+  font-size: 1rem;
+  background-color: #fff;
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
 button {
-  width: 100%;
-  padding: 10px;
-  background-color: #db6109;
+  background-color: #045fc0;
   color: white;
+  padding: 10px;
+  margin-top: 10px;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background-color: #8f5b06e0;
+  background-color: #0056b3;
+}
+
+p {
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+p a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+p a:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  color: #dc3545;
+  font-weight: bold;
+  margin-top: 10px;
 }
 </style>

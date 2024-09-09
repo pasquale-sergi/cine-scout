@@ -1,18 +1,21 @@
 <template>
   <div class="home-page">
-    <div v-if="!movie" class="suggestion-options">
+    <div v-if="!movie && !isLoading" class="suggestion-options">
       <h2>Welcome! What kind of movie are you in the mood for?</h2>
       <div class="button-group">
-        <button @click="getRandomSuggestion" class="action-button">
+        <button @click="getRandomSuggestion" class="find-movie-btn">
           Surprise me!
         </button>
-        <button @click="showGenreSelection" class="action-button">
+        <button @click="showGenreSelection" class="find-movie-btn">
           I have a genre in mind
         </button>
       </div>
     </div>
 
-    <div v-if="showingGenreSelect" class="genre-selection">
+    <div
+      v-if="showingGenreSelect && !isLoading && !movie"
+      class="genre-selection"
+    >
       <h3>Select a genre:</h3>
       <div class="genre-selection-group">
         <select v-model="selectedGenre" class="genre-menu">
@@ -20,10 +23,13 @@
             {{ genre }}
           </option>
         </select>
-        <button @click="getSuggestionByGenre" class="action-button">
+        <button @click="getSuggestionByGenre" class="find-movie-btn-second">
           Get Suggestion
         </button>
       </div>
+    </div>
+    <div v-if="isLoading" class="spinner-overlay">
+      <div class="spinner"></div>
     </div>
 
     <div v-if="isMovie && movie" class="movie-suggestion">
@@ -43,14 +49,6 @@
             <span class="detail-title">Release Date:</span>
             <span class="detail-value">{{ movie.release_date }}</span>
           </div>
-          <!-- <div class="detail-item">
-            <span class="detail-title">Production Companies:</span>
-            <span class="detail-value">{{
-              movie.production_companies != null
-                ? movie.production_companies
-                : "N/A"
-            }}</span>
-          </div> -->
           <div class="detail-item">
             <span class="detail-title">Runtime:</span>
             <span class="detail-value"
@@ -96,10 +94,11 @@
         </button>
       </div>
     </div>
-    <div v-if="!isMovie" class="no-movie-found">
+    <div v-if="!isMovie && !isLoading" class="no-movie-found">
       <p>{{ message }}</p>
     </div>
-    <!-- Star Rating Popup -->
+
+    <!-- Star Rating and Saving Popup -->
     <div v-if="showRatingPopup" class="rating-popup">
       <rating-system
         @rate-movie="rateMovie"
@@ -107,6 +106,7 @@
         @my-films="toMyFilms"
       ></rating-system>
     </div>
+
     <!--start add to currently watching pop up-->
     <div class="mark-pop-up" v-if="showCWPopUp">
       <div>
@@ -136,6 +136,10 @@ export default {
     movie: {
       type: Object,
       default: () => ({}),
+    },
+    username: {
+      type: String,
+      required: true,
     },
   },
   emits: [
@@ -186,7 +190,7 @@ export default {
 
     const getRandomSuggestion = () => {
       apiCallInProgress.value = true;
-
+      isLoading.value = true;
       emit("get-suggestion");
     };
     watch(currentMovie, () => {
@@ -199,6 +203,7 @@ export default {
           isMovie.value = true;
         }
         apiCallInProgress.value = false;
+        isLoading.value = false;
       }
     });
 
@@ -208,7 +213,7 @@ export default {
 
     const getSuggestionByGenre = () => {
       apiCallInProgress.value = true;
-
+      isLoading.value = true;
       emit("get-suggestion-by-genre", { genre: selectedGenre.value });
       showingGenreSelect.value = false;
     };
@@ -296,8 +301,41 @@ export default {
   display: flex;
   justify-content: center;
 }
+
+.find-movie-btn {
+  margin: 10px;
+  margin-top: 50px;
+  padding: 8px 18px;
+  font-size: 1em;
+  cursor: pointer;
+  background-color: #3089ac;
+  color: rgba(255, 255, 255, 0.93);
+  border: none;
+  border-radius: 10px;
+  transition: background-color 0.3s;
+}
+
+.find-movie-btn-second {
+  margin: 10px;
+  margin-top: 20px;
+  padding: 8px 18px;
+  font-size: 1em;
+  cursor: pointer;
+  background-color: #3089ac;
+  color: rgba(255, 255, 255, 0.93);
+  border: none;
+  border-radius: 10px;
+  transition: background-color 0.3s;
+}
+
+.find-movie-btn:hover {
+  background: #13444f;
+}
 .genre-menu {
-  padding: 7px 10px;
+  margin-top: 18px;
+  width: 150px;
+  height: 40px;
+  text-align: center;
 }
 .suggestion-options,
 .genre-selection {
@@ -381,6 +419,13 @@ select {
 
 .detail-item {
   display: contents;
+}
+
+.loading-message {
+  text-align: center;
+  font-size: 1.2em;
+  margin-top: 20px;
+  color: #3089ac;
 }
 
 .detail-title {
@@ -469,19 +514,25 @@ select {
   gap: 10px;
 }
 
-.spinner-container {
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100px;
+  z-index: 1000;
 }
 
 .spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: #db6109;
-  border-radius: 50%;
   width: 40px;
   height: 40px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #072b39;
+  border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 

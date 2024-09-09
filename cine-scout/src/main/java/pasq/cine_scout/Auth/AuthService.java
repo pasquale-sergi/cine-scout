@@ -32,7 +32,7 @@ public class AuthService {
     @Autowired
     private TokenService tokenService;
 
-    public ApplicationUser signUp(String email, String password, String username){
+    public ApplicationUser signUp(String email, String username, String password){
         String encodedPassword = passwordEncoder.encode(password);
         Role userRole = roleRepository.findByAuthority("USER").get();
         Set<Role> authorities = new HashSet<>();

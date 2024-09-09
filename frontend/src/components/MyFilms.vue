@@ -1,6 +1,8 @@
 <template>
   <div class="my-films">
-    <h2>My Watched Films</h2>
+    <div class="title-myfilms">
+      <h2>My Watched Films</h2>
+    </div>
     <div v-if="savedMovies.length > 0" class="film-grid">
       <div v-for="movie in savedMovies" :key="movie.id" class="film-card">
         <img
@@ -17,7 +19,7 @@
         </div>
       </div>
     </div>
-    <div v-else>
+    <div v-else class="message">
       <p>You have no saved movies.</p>
     </div>
 
@@ -41,11 +43,7 @@ export default {
   },
   props: {
     savedMovies: {
-      type: Array,
-      required: true,
-    },
-    deleteMovie: {
-      type: Function,
+      type: Object,
       required: true,
     },
   },
@@ -59,7 +57,6 @@ export default {
   methods: {
     showMovieDetails(movie) {
       this.selectedMovie = movie;
-      console.log("movie for details: ", movie);
       this.isPopupVisible = true;
     },
     closeMovieDetails() {
@@ -84,6 +81,14 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
+}
+.message {
+  display: flex;
+  justify-content: center;
+}
+.title-myfilms {
+  display: flex;
+  justify-content: center;
 }
 
 .film-card {

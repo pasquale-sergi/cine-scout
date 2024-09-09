@@ -39,7 +39,6 @@
         <my-films
           v-else-if="currentPage === 'myFilms'"
           :savedMovies="savedMovies"
-          :username="sessionUserData"
           @delete-movie="deleteMovie"
         />
         <currently-watching
@@ -92,7 +91,6 @@ export default {
       // Save username and JWT to local storage
       localStorage.setItem("userToken", userData.token);
       localStorage.setItem("username", userData.username);
-      console.log("Username: ", sessionUserData.value);
     };
     const showCurrentlyWatching = () => {
       currentPage.value = "CurrentlyWatching";
@@ -125,10 +123,7 @@ export default {
       getSavedMovies();
     };
 
-    //put criteria = {} inside func parameter
     const getSuggestion = async () => {
-      console.log("sending the movie request");
-      // In a real app, you'd call your backend API here
       try {
         if (!userJWT.value) {
           console.error("No JWT available. User might not be logged in.");
@@ -152,7 +147,6 @@ export default {
           fetchTrailer(movieData.title),
           fetchStreamingPlatforms(movieData.id, userJWT),
         ]);
-        console.log("still good");
 
         currentMovie.value = formatMovieData(movieData, trailerUrl, platforms);
       } catch (error) {
@@ -224,7 +218,7 @@ export default {
           );
 
           const data = await response.json();
-          console.log("currently watching: ", data);
+          return data;
         } catch (error) {
           console.error("Error with the add currently watching request");
         }
@@ -245,9 +239,7 @@ export default {
         );
 
         const data = await response.json();
-        console.log("fetching currently watching: ", data);
         currentlyWatching.value = data;
-        console.log("after assignig to ref: ", currentlyWatching.value);
       } catch (error) {
         console.error("Error retrieving currently watching movies");
       }
@@ -260,7 +252,6 @@ export default {
     };
 
     const markAsWatched = async () => {
-      console.log("movie right before the save:", currentMovie.value);
       if (
         currentMovie.value &&
         !watchedMovies.value.find((m) => m.id === currentMovie.value.id)
@@ -298,9 +289,8 @@ export default {
           if (!response.ok) {
             throw new Error("Network response was not ok");
           }
-          console.log("request sent with rating:", requestBody.movie.rating);
           const data = await response.json();
-          console.log("Saved Successfully. Data: ", data);
+          return data;
         } catch (error) {
           console.error("Error saving the movie:", error);
         }
@@ -328,7 +318,6 @@ export default {
         );
         const data = await response.json();
         savedMovies.value = data;
-        console.log("Saved Movie Data ", savedMovies.value);
       } catch (error) {
         console.error("Error retrieving the saved movies");
       }
@@ -427,7 +416,6 @@ export default {
     };
 
     const fetchStreamingPlatforms = async (movieId, userJWT) => {
-      console.log("inside streaming");
       const response = await fetch(
         `http://localhost:8080/movie/${movieId}/streaming-platforms`,
         {
@@ -438,7 +426,6 @@ export default {
           },
         }
       );
-      console.log("about to exit");
       return await response.json();
     };
 
@@ -461,7 +448,6 @@ export default {
     };
 
     onMounted(() => {
-      // Check if user is already logged in (e.g., from localStorage)
       const token = localStorage.getItem("userToken");
       const username = localStorage.getItem("username");
 
@@ -469,7 +455,6 @@ export default {
         isLoggedIn.value = true;
         sessionUserData.value = username;
         userJWT.value = token;
-        getSuggestion();
       }
     });
 
@@ -505,7 +490,7 @@ export default {
 :root {
   --primary-color: #1a1a1a;
   --secondary-color: #f0f0f0;
-  --accent-color: #ffd700;
+  --accent-color: #008ebdd3;
   --text-color: #333;
   --button-hover: #e0e0e0;
 }
@@ -543,12 +528,12 @@ body {
   align-items: center;
   padding: 0.5rem 0;
 }
-
+/* 
 .nav-links,
 .auth-links {
   display: flex;
   gap: 1rem;
-}
+} */
 
 .nav-button {
   background-color: transparent;
@@ -557,21 +542,34 @@ body {
   cursor: pointer;
   font-size: 1rem;
   padding: 0.5rem 1rem;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
   border-radius: 4px;
+  position: relative;
 }
 
-.nav-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.nav-button::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 5px;
+  bottom: 0;
+  left: 0;
+  background: #141718;
+  transform-origin: bottom right;
+  transition: transform 0.25s ease-out;
+}
+
+.logout-button:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+  color: orange;
 }
 
 .logout-button {
   background-color: var(--accent-color);
   color: var(--primary-color);
-}
-
-.logout-button:hover {
-  background-color: #e6c200;
+  border-radius: 20px;
 }
 
 .main-content {
