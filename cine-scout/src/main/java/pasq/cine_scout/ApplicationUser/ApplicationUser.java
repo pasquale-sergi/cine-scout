@@ -1,6 +1,7 @@
 package pasq.cine_scout.ApplicationUser;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,6 +40,7 @@ public class ApplicationUser implements UserDetails {
 
 
     @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private List<SavedMovies> savedMovies;
 
 

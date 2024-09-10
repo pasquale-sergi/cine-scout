@@ -1,4 +1,5 @@
 package pasq.cine_scout.SavedMovies;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class SavedMovies {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private ApplicationUser user;
 
     @ManyToOne
