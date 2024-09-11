@@ -116,25 +116,36 @@ public class PlaylistService {
 
     @Transactional
     public Movie deleteMovieFromPlaylist(String username, String name, Integer movieId) {
+            ApplicationUser user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("User not found with given username"));
+
+    Playlist playlist = playlistRepository.findByNameAndUser(name, user)
+            .orElseThrow(() -> new RuntimeException("Playlist not found with given name"));
+
+    Movie movie = movieRepository.findById(movieId)
+            .orElseThrow(() -> new RuntimeException("Movie not found with given id"));
+
+    // Check if the movie exists in the playlist before attempting to delete
+    if (playlist.getMovies().contains(movie)) {
+        playlist.getMovies().remove(movie); // Remove the movie from the playlist
+        playlistRepository.save(playlist);  // Save the updated playlist
+    } else {
+        throw new RuntimeException("Movie not found in the playlist");
+    }
+
+    return movie;
+    }
+    @Transactional
+    public Playlist updateName(String username, String name, String newName){
         ApplicationUser user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found with given username"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Playlist playlist = playlistRepository.findByNameAndUser(name, user)
-                .orElseThrow(() -> new RuntimeException("Playlist not found with given name"));
+                .orElseThrow(() -> new RuntimeException("Playlist not found"));
 
-        Movie movie = movieRepository.findById(movieId).orElseThrow(()->new RuntimeException("Movie not found with given id"));
-        // Check if the movie exists in the playlist before attempting to delete
-        boolean movieExists = playlist.getMovies().stream()
-                .anyMatch(m -> m.getMovieId().equals(movie.getMovieId()));
+        playlist.setName(newName);
 
-        if (movieExists) {
-            // Custom repository method to delete movie from playlist
-            playlistRepository.deleteMovieFromPlaylistByMovies(playlist, movie.getId());
-        } else {
-            throw new RuntimeException("Movie not found in the playlist");
-        }
-
-        return movie; // Return the deleted movie
+        return playlistRepository.save(playlist);
     }
 
 }

@@ -1,6 +1,7 @@
 package pasq.cine_scout.Playlist;
 
 import org.asynchttpclient.Response;
+import org.hibernate.annotations.OnDelete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,18 @@ public class PlaylistController {
     public ResponseEntity<Movie> deleteMovieFromPlaylist(@RequestParam String username, @RequestParam String name, @RequestParam Integer movieId){
         Movie movie = playlistService.deleteMovieFromPlaylist(username, name, movieId);
         return ResponseEntity.ok().body(movie);
+    }
+
+    @PutMapping("/{username}/update-name")
+    public ResponseEntity<Playlist> editName(@PathVariable String username,@RequestParam String name, @RequestParam String newName){
+        Playlist playlist = playlistService.updateName(username, name, newName);
+        return ResponseEntity.ok().body(playlist);
+    }
+
+    @DeleteMapping("/{username}/delete")
+    public ResponseEntity<String> deletePlaylist(@PathVariable String username, @RequestParam String name){
+        playlistService.deletePlaylist(name, username);
+        return ResponseEntity.ok().body("Playlist deleted.");
     }
 
 

@@ -17,8 +17,6 @@ public interface PlaylistRepository extends JpaRepository<Playlist, Integer> {
 
     List<Playlist> findAllByUser(ApplicationUser user);
 
-    // Assuming a many-to-many or one-to-many relationship between Playlist and Movie
-    void deleteMovieFromPlaylistByMovies(Playlist playlist,Integer movieId);
 
 
 }
