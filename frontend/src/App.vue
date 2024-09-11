@@ -9,6 +9,9 @@
           <button @click="showCurrentlyWatching" class="nav-button">
             Currently Watching
           </button>
+          <button class="nav-button" @click="showMyPlaylists">
+            My Playlists
+          </button>
         </div>
         <div class="auth-links">
           <button @click="logout" class="nav-button logout-button">
@@ -48,6 +51,12 @@
           @save-movie="saveMovieFromCw"
           @my-films="showMyFilms"
         />
+        <playlist-movie
+          v-else-if="currentPage === 'MyPlaylists'"
+          :playlists="allPlaylists"
+          :savedMovies="savedMovies"
+          @delete-movie-from-playlist="deleteMovieFromPlaylist"
+        ></playlist-movie>
       </template>
     </main>
 
@@ -62,6 +71,7 @@ import LoginForm from "./components/LoginForm.vue";
 import HomePage from "./components/HomePage.vue";
 import MyFilms from "./components/MyFilms.vue";
 import CurrentlyWatching from "./components/CurrentlyWatching.vue";
+import PlaylistMovie from "./components/PlaylistMovie.vue";
 import axios from "axios";
 
 export default {
@@ -71,6 +81,7 @@ export default {
     HomePage,
     MyFilms,
     CurrentlyWatching,
+    PlaylistMovie,
   },
   setup() {
     const isLoggedIn = ref(false);
@@ -81,6 +92,7 @@ export default {
     const sessionUserData = ref(null);
     const savedMovies = ref([]);
     const currentlyWatching = ref([]);
+    const allPlaylists = ref([]);
 
     const handleLogin = (userData) => {
       // In a real app, you'd verify the login with your backend
@@ -121,6 +133,11 @@ export default {
     const showMyFilms = () => {
       currentPage.value = "myFilms";
       getSavedMovies();
+    };
+
+    const showMyPlaylists = () => {
+      currentPage.value = "MyPlaylists";
+      getPlaylists();
     };
 
     const getSuggestion = async () => {
@@ -447,6 +464,47 @@ export default {
       };
     };
 
+    //playlist section
+
+    const getPlaylists = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/playlist/all?username=${sessionUserData.value}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${userJWT.value}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const data = await response.json();
+        allPlaylists.value = data;
+      } catch (error) {
+        console.error("Error retrieving playlist");
+      }
+    };
+
+    const deleteMovieFromPlaylist = async (playlistName, movieId) => {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/playlist/delete-movie?username=${sessionUserData.value}&name=${playlistName}&movieId=${movieId}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${userJWT.value}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (response.status === 200) {
+          console.log("movie deleted");
+        }
+      } catch (error) {
+        console.error("Error deleting the movie from the playlist");
+      }
+    };
+
     onMounted(() => {
       const token = localStorage.getItem("userToken");
       const username = localStorage.getItem("username");
@@ -481,6 +539,10 @@ export default {
       getCurrentWatching,
       deleteMovieFromCW,
       saveMovieFromCw,
+      showMyPlaylists,
+      getPlaylists,
+      allPlaylists,
+      deleteMovieFromPlaylist,
     };
   },
 };
@@ -552,7 +614,7 @@ body {
   position: absolute;
   width: 100%;
   transform: scaleX(0);
-  height: 5px;
+  height: 2px;
   bottom: 0;
   left: 0;
   background: #141718;
@@ -560,10 +622,10 @@ body {
   transition: transform 0.25s ease-out;
 }
 
-.logout-button:hover::after {
+.logout-button:hover::after,
+.nav-button:hover::after {
   transform: scaleX(1);
   transform-origin: bottom left;
-  color: orange;
 }
 
 .logout-button {
