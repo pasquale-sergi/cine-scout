@@ -56,5 +56,9 @@ public class PlaylistController {
         return ResponseEntity.ok().body("Playlist deleted.");
     }
 
-
+    @GetMapping("/movies")
+    public ResponseEntity<List<Movie>> getPlaylistMovies(@RequestParam String username, @RequestParam String name){
+        List<Movie> movies = playlistService.getMoviesInPlaylist(name, username);
+        return ResponseEntity.ok().body(movies);
+    }
 }

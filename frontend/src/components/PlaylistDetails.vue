@@ -15,8 +15,12 @@
           Delete Playlist
         </button>
       </div>
-      <div v-if="playlist.movies.length > 0" class="film-grid">
-        <div v-for="movie in playlist.movies" :key="movie.id" class="film-card">
+      <div v-if="playlist.movies" class="film-grid">
+        <div
+          v-for="movie in moviesInPlaylist"
+          :key="movie.id"
+          class="film-card"
+        >
           <img
             v-if="movie.poster_path"
             :src="movie.poster_path"
@@ -74,6 +78,10 @@ export default {
       type: Boolean,
       required: true,
     },
+    moviesInPlaylist: {
+      type: Array,
+      required: true,
+    },
   },
   emits: [
     "close",
@@ -96,19 +104,18 @@ export default {
       const newName = prompt("Enter new playlist name:", this.playlist.name);
       if (newName && newName !== this.playlist.name) {
         this.$emit("rename-playlist", {
-          playlistId: this.playlist.id,
+          playlistName: this.playlist.name,
           newName,
         });
       }
     },
     handleAddMovie() {
-      this.$emit("add-movie", this.playlist.id);
+      this.$emit("add-movie", this.playlist);
     },
-    handleRemoveMovie() {
-      console.log(this.selectedMovie);
+    handleRemoveMovie(movie) {
       this.$emit("remove-movie", {
-        playlistId: this.playlist.name,
-        movieId: this.selectedMovie.id,
+        playlistName: this.playlist.name,
+        movieId: movie.id,
       });
     },
     handleDeletePlaylist() {

@@ -46,21 +46,37 @@
     </div>
 
     <!-- Popup for adding movies -->
-    <div v-if="isAddMoviesPopupVisible" class="add-movies-popup">
-      <h2>Select Movies to Add to {{ selectedPlaylist.name }}</h2>
-      <div class="film-grid">
-        <div v-for="movie in savedMovies" :key="movie.id" class="film-card">
-          <img
-            v-if="movie.poster_path"
-            :src="movie.poster_path"
-            :alt="movie.title"
-            class="movie-poster"
-          />
-          <h3>{{ movie.title }}</h3>
-          <button @click="addMovieToPlaylist(movie)">Add</button>
+    <div
+      v-if="isAddMoviesPopupVisible"
+      class="playlist-details add-movies-popup"
+    >
+      <div class="playlist-details-content">
+        <div class="title-div">
+          <h2>Select Movies to Add to {{ selectedPlaylist.name }}</h2>
         </div>
+        <div class="film-grid">
+          <div v-for="movie in savedMovies" :key="movie.id" class="film-card">
+            <img
+              v-if="movie.poster_path"
+              :src="movie.poster_path"
+              :alt="movie.title"
+              class="movie-poster"
+            />
+            <h3>{{ movie.title }}</h3>
+            <button class="action-button" @click="addMovieToPlaylist(movie.id)">
+              Add
+            </button>
+          </div>
+        </div>
+        <button class="close-button" @click="closeAddMoviesPopup">
+          &times;
+        </button>
+        <transition name="fade">
+          <div v-if="showPopUpMovieAdded" class="notification-popup">
+            <p>Movie added to the playlist</p>
+          </div>
+        </transition>
       </div>
-      <button @click="closeAddMoviesPopup">Close</button>
     </div>
 
     <!--pop up for playlist details-->
@@ -70,9 +86,10 @@
         :playlist="selectedPlaylist"
         @close="closePlaylistDetails"
         @rename-playlist="handleRenamePlaylist"
-        @add-movie="handleAddMovie"
+        @add-movie="handleAddMovies"
         @remove-movie="handleRemoveMovie"
         @delete-playlist="handleDeletePlaylist"
+        :moviesInPlaylist="moviesInPlaylist"
       ></playlist-details>
     </div>
   </div>
@@ -94,31 +111,42 @@ export default {
       type: Array,
       required: true,
     },
+    moviesInPlaylist: {
+      type: Array,
+      required: true,
+    },
   },
-  emits: ["delete-movie-from-playlist"],
+  emits: [
+    "delete-movie-from-playlist",
+    "add-movie-to-playlist",
+    "get-movies-playlist",
+    "get-playlist",
+  ],
   data() {
     return {
       activePlaylist: null,
       isAddMoviesPopupVisible: false,
       selectedPlaylist: null,
       showPlaylistInfo: false,
+      showPopUpMovieAdded: false,
+      notificationTimeout: null,
     };
   },
   methods: {
     getRandomMovies(movies) {
       // Return a random selection of 4 movies
-      return movies.length > 4 ? movies.slice(0, 4) : movies;
+      return movies.length > 2 ? movies.slice(0, 2) : movies;
     },
     showPlaylistDetails(playlist) {
-      console.log(playlist);
       this.selectedPlaylist = playlist;
-      // Logic to show details for the playlist
+      this.$emit("get-movies-playlist", playlist);
       this.showPlaylistInfo = true;
     },
     toggleOptionsMenu(playlist) {
       this.activePlaylist = this.activePlaylist === playlist ? null : playlist;
     },
     handleAddMovies(playlist) {
+      this.showPlaylistInfo = false;
       this.selectedPlaylist = playlist;
       this.isAddMoviesPopupVisible = true;
     },
@@ -128,24 +156,39 @@ export default {
     },
     handleRemovePlaylist(playlist) {
       // Emit event to remove playlist
+
       this.$emit("remove-playlist", playlist);
     },
-    addMovieToPlaylist(movie) {
+    addMovieToPlaylist(movieId) {
       // Emit event to add movie to the selected playlist
       this.$emit("add-movie-to-playlist", {
-        playlist: this.selectedPlaylist,
-        movie,
+        playlistName: this.selectedPlaylist.name,
+        movieId,
       });
+      this.showNotification();
+    },
+
+    showNotification() {
+      this.showPopUpMovieAdded = true;
+      clearTimeout(this.notificationTimeout);
+      this.notificationTimeout = setTimeout(() => {
+        this.showPopUpMovieAdded = false;
+      }, 1000);
     },
     closeAddMoviesPopup() {
       this.isAddMoviesPopupVisible = false;
       this.selectedPlaylist = null;
     },
     closePlaylistDetails() {
+      console.log("emitting get playtlist");
+      this.$emit("get-playlist");
       this.showPlaylistInfo = false;
     },
-    handleRemoveMovie(playlistName, movieId) {
+    handleRemoveMovie({ playlistName, movieId }) {
       this.$emit("delete-movie-from-playlist", playlistName, movieId);
+    },
+    beforeUnmount() {
+      clearTimeout(this.notificationTimeout);
     },
   },
 };
@@ -208,10 +251,6 @@ button {
   margin-right: 7px;
 }
 
-button:hover {
-  background-color: #13444f;
-}
-
 .options-menu {
   position: absolute;
   top: 100%;
@@ -225,21 +264,131 @@ button:hover {
 
 .add-movies-popup {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   z-index: 1000;
 }
 
-.add-movies-popup .film-grid {
+.playlist-details-content {
+  position: relative;
+  background-color: #ffffffe0;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 80%;
+  max-height: 80%;
+  overflow-y: auto;
+}
+
+.notification-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(76, 175, 80, 0.9); /* Slightly transparent green */
+  color: white;
+  padding: 10px 14px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  text-align: center;
+  min-width: 200px;
+}
+
+/* Ensure the parent container allows for absolute positioning */
+.playlist-details-content {
+  position: relative;
+}
+
+/* Existing transition styles */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.title-div {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.film-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 16px;
+  justify-content: center;
+}
+
+.film-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 200px;
+  text-align: center;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  position: relative;
+}
+
+.film-card:hover {
+  transform: translateY(-5px);
+}
+
+.movie-poster {
+  width: 100%;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.action-button {
+  background-color: #407c94;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.action-button:hover {
+  background-color: #13444f;
+}
+
+.close-button {
+  position: absolute;
+  background: none;
+  color: #05012ca1;
+  top: 15px;
+  right: 2px;
+  font-size: 1.5rem;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  color: #05012c2b;
+}
+
+.message {
+  display: flex;
+  justify-content: center;
+}
+.title-myfilms {
+  display: flex;
+  justify-content: center;
 }
 </style>
   

@@ -96,6 +96,7 @@ public class PlaylistService {
     }
     @Transactional
     public Playlist addMovieToPlaylist(String name, String username, Integer movieId){
+        System.out.println("received request to add movie with data: "+username+" " +name+" "+movieId);
         ApplicationUser user = userRepository.findByUsername(username).get();
         Playlist playlist = playlistRepository.findByName(name).get();
         if(!(playlist.getUser()).equals(user)){
@@ -146,6 +147,15 @@ public class PlaylistService {
         playlist.setName(newName);
 
         return playlistRepository.save(playlist);
+    }
+
+    @Transactional
+    public List<Movie> getMoviesInPlaylist(String name, String username){
+        ApplicationUser user = userRepository.findByUsername(username).orElseThrow(()-> new RuntimeException("user not found with given username"));
+        Playlist playlist = playlistRepository.findByNameAndUser(name, user).orElseThrow(()->new RuntimeException("Playlist not found"));
+
+        List<Movie> movies = playlist.getMovies().stream().toList();
+        return movies;
     }
 
 }

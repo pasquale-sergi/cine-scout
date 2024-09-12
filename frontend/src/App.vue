@@ -56,6 +56,10 @@
           :playlists="allPlaylists"
           :savedMovies="savedMovies"
           @delete-movie-from-playlist="deleteMovieFromPlaylist"
+          :moviesInPlaylist="moviesInPlaylist"
+          @add-movie-to-playlist="addMovieToPlaylist"
+          @get-movies-playlist="getMoviesInPlaylist"
+          @get-playlist="getPlaylists"
         ></playlist-movie>
       </template>
     </main>
@@ -93,6 +97,7 @@ export default {
     const savedMovies = ref([]);
     const currentlyWatching = ref([]);
     const allPlaylists = ref([]);
+    const moviesInPlaylist = ref([]);
 
     const handleLogin = (userData) => {
       // In a real app, you'd verify the login with your backend
@@ -498,10 +503,54 @@ export default {
           }
         );
         if (response.status === 200) {
+          //update the movies inside the playlist
+          moviesInPlaylist.value = moviesInPlaylist.value.filter(
+            (m) => m.id !== movieId
+          );
           console.log("movie deleted");
         }
       } catch (error) {
         console.error("Error deleting the movie from the playlist");
+      }
+    };
+
+    const getMoviesInPlaylist = async (playlistName) => {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/playlist/movies?username=${sessionUserData.value}&name=${playlistName.name}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${userJWT.value}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const data = await response.json();
+        moviesInPlaylist.value = data;
+      } catch (error) {
+        console.error("Error retrieving the movies in the current playlist");
+      }
+    };
+
+    const addMovieToPlaylist = async (parameters) => {
+      console.log(typeof parameters, parameters);
+      try {
+        const response = await fetch(
+          `http://localhost:8080/playlist/add-movie?name=${parameters.playlistName}&username=${sessionUserData.value}&movieId=${parameters.movieId}`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${userJWT.value}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        await response.json();
+        await getPlaylists();
+      } catch (error) {
+        console.error("error adding the movie to the playlist");
       }
     };
 
@@ -543,6 +592,9 @@ export default {
       getPlaylists,
       allPlaylists,
       deleteMovieFromPlaylist,
+      getMoviesInPlaylist,
+      moviesInPlaylist,
+      addMovieToPlaylist,
     };
   },
 };
