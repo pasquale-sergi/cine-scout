@@ -22,7 +22,7 @@ public class PlaylistService {
     @Autowired
     private MovieRepository movieRepository;
 
-    public Playlist createPlaylist(String username, String name){
+    public Playlist createPlaylist(String username, String name, String description){
         //check if the name is already used for another playlist
         Optional<Playlist> playlistExist = playlistRepository.findByName(name);
         ApplicationUser user = userRepository.findByUsername(username).get();
@@ -30,6 +30,7 @@ public class PlaylistService {
             //we create that one
             Playlist playlist = Playlist.builder()
                     .name(name)
+                    .description(description)
                     .user(user)
                     .build();
             playlistRepository.save(playlist);

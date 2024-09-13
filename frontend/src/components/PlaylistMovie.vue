@@ -2,8 +2,11 @@
   <div class="my-playlists">
     <div class="title-myplaylists">
       <h2>My Playlists</h2>
+      <button class="create-playlist" @click="showCreatePlaylistPopup">
+        Create a Playlist
+      </button>
     </div>
-    <div v-if="playlists" class="playlist-grid">
+    <div v-if="playlists.length > 0" class="playlist-grid">
       <div
         v-for="playlist in playlists"
         :key="playlist.id"
@@ -44,6 +47,13 @@
     <div v-else class="message">
       <p>You have no playlists.</p>
     </div>
+
+    <!-- Create Playlist Pop-up -->
+    <create-playlist
+      v-if="isCreatePlaylistPopupVisible"
+      @close="closeCreatePlaylistPopup"
+      @create-playlist="handleCreatePlaylist"
+    />
 
     <!-- Popup for adding movies -->
     <div
@@ -97,10 +107,12 @@
   
   <script>
 import PlaylistDetails from "./PlaylistDetails.vue";
+import CreatePlaylist from "./utils/CreatePlaylist.vue";
 export default {
   name: "MyPlaylists",
   components: {
     PlaylistDetails,
+    CreatePlaylist,
   },
   props: {
     playlists: {
@@ -121,6 +133,8 @@ export default {
     "add-movie-to-playlist",
     "get-movies-playlist",
     "get-playlist",
+    "rename-the-playlist",
+    "delete-the-playlist",
   ],
   data() {
     return {
@@ -130,6 +144,8 @@ export default {
       showPlaylistInfo: false,
       showPopUpMovieAdded: false,
       notificationTimeout: null,
+      showCreatePlaylistModal: false,
+      isCreatePlaylistPopupVisible: false,
     };
   },
   methods: {
@@ -146,18 +162,21 @@ export default {
       this.activePlaylist = this.activePlaylist === playlist ? null : playlist;
     },
     handleAddMovies(playlist) {
+      this.$emit("get-movies-playlist", playlist);
+      this.showCreatePlaylistModal = false;
       this.showPlaylistInfo = false;
       this.selectedPlaylist = playlist;
       this.isAddMoviesPopupVisible = true;
     },
-    handleUpdateName(playlist) {
+    handleRenamePlaylist(playlist) {
+      console.log("emitting renaming event");
       // Logic to update the playlist name
+      this.$emit("rename-the-playlist", playlist);
       console.log(playlist);
     },
-    handleRemovePlaylist(playlist) {
-      // Emit event to remove playlist
-
-      this.$emit("remove-playlist", playlist);
+    handleDeletePlaylist(playlist) {
+      this.showPlaylistInfo = false;
+      this.$emit("delete-the-playlist", playlist);
     },
     addMovieToPlaylist(movieId) {
       // Emit event to add movie to the selected playlist
@@ -166,6 +185,24 @@ export default {
         movieId,
       });
       this.showNotification();
+    },
+
+    showCreatePlaylistPopup() {
+      this.isCreatePlaylistPopupVisible = true;
+    },
+
+    closeCreatePlaylistPopup() {
+      this.isCreatePlaylistPopupVisible = false;
+    },
+
+    handleCreatePlaylist(playlistData) {
+      // Emit event to create new playlist
+      this.$emit("create-the-playlist", playlistData);
+
+      if (playlistData.addMovies) {
+        // Show add movies popup for the newly created playlist
+        this.handleAddMovies({ name: playlistData.name });
+      }
     },
 
     showNotification() {
@@ -261,7 +298,10 @@ button {
   padding: 10px;
   z-index: 1;
 }
-
+.title-myplaylists {
+  display: flex;
+  justify-content: center;
+}
 .add-movies-popup {
   position: fixed;
   top: 0;

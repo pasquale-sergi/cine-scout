@@ -60,6 +60,9 @@
           @add-movie-to-playlist="addMovieToPlaylist"
           @get-movies-playlist="getMoviesInPlaylist"
           @get-playlist="getPlaylists"
+          @rename-the-playlist="renamePlaylist"
+          @delete-the-playlist="deletePlaylist"
+          @create-the-playlist="createPlaylist"
         ></playlist-movie>
       </template>
     </main>
@@ -554,6 +557,29 @@ export default {
       }
     };
 
+    const renamePlaylist = async (playlist) => {
+      console.log("passing parameters: ");
+      console.log(typeof playlist, playlist);
+      // console.log(typeof newName, newName);
+      try {
+        const response = await fetch(
+          `http://localhost:8080/playlist/${sessionUserData.value}/update-name?name=${playlist.playlist.name}&newName=${playlist.newName}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${userJWT.value}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await response.json();
+        console.log("response from updating func: ", data);
+      } catch (error) {
+        console.log("error updating the name of the playlist");
+      }
+    };
+
     onMounted(() => {
       const token = localStorage.getItem("userToken");
       const username = localStorage.getItem("username");
@@ -564,6 +590,54 @@ export default {
         userJWT.value = token;
       }
     });
+
+    const deletePlaylist = async (playlist) => {
+      try {
+        await fetch(
+          `http://localhost:8080/playlist/${sessionUserData.value}/delete?name=${playlist.name}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${userJWT.value}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        allPlaylists.value = allPlaylists.value.filter(
+          (p) => p.id !== playlist.id
+        );
+      } catch (error) {
+        console.error("error deleting the playlist: ", playlist);
+      }
+    };
+
+    const createPlaylist = async (playlistData) => {
+      try {
+        const bodyRequest = {
+          name: playlistData.name,
+          description: playlistData.description,
+        };
+        console.log(playlistData);
+        const response = await fetch(
+          `http://localhost:8080/playlist/create?username=${sessionUserData.value}`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${userJWT.value}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(bodyRequest),
+          }
+        );
+
+        const data = await response.json();
+        console.log(data);
+        getPlaylists();
+      } catch (error) {
+        console.error("error creating the playlist");
+      }
+    };
 
     return {
       isLoggedIn,
@@ -595,6 +669,9 @@ export default {
       getMoviesInPlaylist,
       moviesInPlaylist,
       addMovieToPlaylist,
+      renamePlaylist,
+      deletePlaylist,
+      createPlaylist,
     };
   },
 };

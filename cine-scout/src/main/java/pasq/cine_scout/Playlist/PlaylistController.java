@@ -15,8 +15,8 @@ public class PlaylistController {
     @Autowired
     private PlaylistService playlistService;
     @PostMapping("/create")
-    public ResponseEntity<Playlist> createPlaylist(@RequestParam String username, @RequestParam String name){
-        Playlist playlist= playlistService.createPlaylist(username, name);
+    public ResponseEntity<Playlist> createPlaylist(@RequestParam String username, @RequestBody PlaylistAddRequest request){
+        Playlist playlist= playlistService.createPlaylist(username, request.getName(), request.getDescription());
         return ResponseEntity.ok().body(playlist);
     }
 
@@ -49,6 +49,8 @@ public class PlaylistController {
         Playlist playlist = playlistService.updateName(username, name, newName);
         return ResponseEntity.ok().body(playlist);
     }
+
+
 
     @DeleteMapping("/{username}/delete")
     public ResponseEntity<String> deletePlaylist(@PathVariable String username, @RequestParam String name){
