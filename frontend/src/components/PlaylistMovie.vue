@@ -64,8 +64,12 @@
         <div class="title-div">
           <h2>Select Movies to Add to {{ selectedPlaylist.name }}</h2>
         </div>
-        <div class="film-grid">
-          <div v-for="movie in savedMovies" :key="movie.id" class="film-card">
+        <div class="film-grid" v-if="filteredMovies.length > 0">
+          <div
+            v-for="movie in filteredMovies"
+            :key="movie.id"
+            class="film-card"
+          >
             <img
               v-if="movie.poster_path"
               :src="movie.poster_path"
@@ -78,6 +82,9 @@
             </button>
           </div>
         </div>
+        <p class="no-movies-to-add" v-else>
+          All your movies are already in the playlist.
+        </p>
         <button class="close-button" @click="closeAddMoviesPopup">
           &times;
         </button>
@@ -127,6 +134,14 @@ export default {
       type: Array,
       required: true,
     },
+    filteredMovies: {
+      type: Array,
+      required: true,
+    },
+    listMoviesToAdd: {
+      type: Array,
+      required: true,
+    },
   },
   emits: [
     "delete-movie-from-playlist",
@@ -135,6 +150,7 @@ export default {
     "get-playlist",
     "rename-the-playlist",
     "delete-the-playlist",
+    "get-my-films",
   ],
   data() {
     return {
@@ -162,28 +178,32 @@ export default {
       this.activePlaylist = this.activePlaylist === playlist ? null : playlist;
     },
     handleAddMovies(playlist) {
-      this.$emit("get-movies-playlist", playlist);
+      this.$emit("get-my-films", playlist);
       this.showCreatePlaylistModal = false;
       this.showPlaylistInfo = false;
       this.selectedPlaylist = playlist;
-      this.isAddMoviesPopupVisible = true;
+
+      this.$nextTick(() => {
+        this.isAddMoviesPopupVisible = true;
+        this.$forceUpdate(); // F
+      });
     },
     handleRenamePlaylist(playlist) {
-      console.log("emitting renaming event");
       // Logic to update the playlist name
       this.$emit("rename-the-playlist", playlist);
-      console.log(playlist);
     },
     handleDeletePlaylist(playlist) {
       this.showPlaylistInfo = false;
       this.$emit("delete-the-playlist", playlist);
     },
     addMovieToPlaylist(movieId) {
+      this.$emit("get-my-films");
       // Emit event to add movie to the selected playlist
       this.$emit("add-movie-to-playlist", {
         playlistName: this.selectedPlaylist.name,
         movieId,
       });
+
       this.showNotification();
     },
 
@@ -217,7 +237,6 @@ export default {
       this.selectedPlaylist = null;
     },
     closePlaylistDetails() {
-      console.log("emitting get playtlist");
       this.$emit("get-playlist");
       this.showPlaylistInfo = false;
     },
@@ -300,7 +319,26 @@ button {
 }
 .title-myplaylists {
   display: flex;
-  justify-content: center;
+  justify-content: space-between; /* Spread the title and button */
+  align-items: center; /* Align items vertically */
+}
+
+.create-playlist {
+  background: none;
+  border: none;
+  color: #407c94;
+  font-size: 1.1rem;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 5px 15px;
+}
+
+.create-playlist:hover {
+  text-decoration: underline;
+}
+
+.create-playlist:focus {
+  outline: none; /* Remove focus outline for a cleaner look */
 }
 .add-movies-popup {
   position: fixed;
@@ -409,8 +447,8 @@ button {
   position: absolute;
   background: none;
   color: #05012ca1;
-  top: 15px;
-  right: 2px;
+  top: 1px;
+  right: -9px;
   font-size: 1.5rem;
   border: none;
   padding: 5px 10px;
@@ -429,6 +467,10 @@ button {
 .title-myfilms {
   display: flex;
   justify-content: center;
+}
+
+.no-movies-to-add {
+  text-align: center;
 }
 </style>
   

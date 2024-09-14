@@ -4,7 +4,6 @@
       <div class="title-div">
         <h2>{{ playlist.name }}</h2>
         <p v-if="playlist.description">{{ playlist.description }}</p>
-        <p v-else>No description</p>
       </div>
       <div class="playlist-options">
         <button class="action-playlist-button" @click="handleRename">
@@ -325,8 +324,9 @@ export default {
 }
 
 .title-div {
-  display: flex;
+  display: block;
   justify-content: center;
+  text-align: center;
 }
 
 .modal {

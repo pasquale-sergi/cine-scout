@@ -47,6 +47,7 @@ public class PlaylistService {
         if(playlist.isPresent()){
             PlaylistDto dto = new PlaylistDto();
             dto.setId(playlist.get().getId());
+            dto.setDescription(playlist.get().getDescription());
             dto.setUserId(playlist.get().getUser().getUserId());
             dto.setMovies(playlist.get().getMovies().stream().collect(Collectors.toList()));
             dto.setName(name);
@@ -69,6 +70,7 @@ public class PlaylistService {
                 // Create a new PlaylistDto object for each playlist
                 PlaylistDto dto = new PlaylistDto();
                 dto.setId(p.getId());
+                dto.setDescription(p.getDescription());
                 dto.setName(p.getName());
                 dto.setUserId(p.getUser().getUserId());
 

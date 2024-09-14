@@ -58,11 +58,14 @@
           @delete-movie-from-playlist="deleteMovieFromPlaylist"
           :moviesInPlaylist="moviesInPlaylist"
           @add-movie-to-playlist="addMovieToPlaylist"
+          :listMoviesToAdd="listMoviesToAdd"
           @get-movies-playlist="getMoviesInPlaylist"
           @get-playlist="getPlaylists"
           @rename-the-playlist="renamePlaylist"
           @delete-the-playlist="deletePlaylist"
           @create-the-playlist="createPlaylist"
+          @get-my-films="getMyWatchedMoviesFiltered"
+          :filteredMovies="filteredMovies"
         ></playlist-movie>
       </template>
     </main>
@@ -101,6 +104,8 @@ export default {
     const currentlyWatching = ref([]);
     const allPlaylists = ref([]);
     const moviesInPlaylist = ref([]);
+    const filteredMovies = ref([]);
+    const listMoviesToAdd = ref([]);
 
     const handleLogin = (userData) => {
       // In a real app, you'd verify the login with your backend
@@ -537,7 +542,6 @@ export default {
     };
 
     const addMovieToPlaylist = async (parameters) => {
-      console.log(typeof parameters, parameters);
       try {
         const response = await fetch(
           `http://localhost:8080/playlist/add-movie?name=${parameters.playlistName}&username=${sessionUserData.value}&movieId=${parameters.movieId}`,
@@ -552,6 +556,11 @@ export default {
 
         await response.json();
         await getPlaylists();
+        filteredMovies.value = filteredMovies.value.filter(
+          (movie) => movie.id !== parameters.movieId
+        );
+
+        //update the list by removing the added movie from the ui
       } catch (error) {
         console.error("error adding the movie to the playlist");
       }
@@ -579,17 +588,6 @@ export default {
         console.log("error updating the name of the playlist");
       }
     };
-
-    onMounted(() => {
-      const token = localStorage.getItem("userToken");
-      const username = localStorage.getItem("username");
-
-      if (token && username) {
-        isLoggedIn.value = true;
-        sessionUserData.value = username;
-        userJWT.value = token;
-      }
-    });
 
     const deletePlaylist = async (playlist) => {
       try {
@@ -639,6 +637,30 @@ export default {
       }
     };
 
+    const getMyWatchedMoviesFiltered = async (playlist) => {
+      try {
+        await getSavedMovies();
+        //filter from savedMovies and delete the movies that are already in the playlist
+        console.log("filtering");
+        filteredMovies.value = savedMovies.value.filter(
+          (m) => !playlist.movies.some((pMovie) => pMovie.id === m.id)
+        );
+      } catch (error) {
+        console.error("error filtering the movies");
+      }
+    };
+
+    onMounted(() => {
+      const token = localStorage.getItem("userToken");
+      const username = localStorage.getItem("username");
+
+      if (token && username) {
+        isLoggedIn.value = true;
+        sessionUserData.value = username;
+        userJWT.value = token;
+      }
+    });
+
     return {
       isLoggedIn,
       currentPage,
@@ -672,6 +694,9 @@ export default {
       renamePlaylist,
       deletePlaylist,
       createPlaylist,
+      getMyWatchedMoviesFiltered,
+      filteredMovies,
+      listMoviesToAdd,
     };
   },
 };
