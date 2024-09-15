@@ -14,6 +14,10 @@
           </button>
         </div>
         <div class="auth-links">
+          <button @click="toggleProfile" class="nav-button profile-button">
+            👤
+            <!-- This is the Unicode character for a user icon -->
+          </button>
           <button @click="logout" class="nav-button logout-button">
             Logout
           </button>
@@ -22,13 +26,13 @@
     </header>
 
     <main class="main-content">
-      <template v-if="!isLoggedIn">
+      <template v-if="!isLoggedIn || currentPage === 'LoginForm'">
         <login-form @login="handleLogin" />
       </template>
 
       <template v-else>
         <home-page
-          v-if="currentPage === 'home'"
+          v-if="currentPage === 'HomePage'"
           @get-suggestion="getSuggestion"
           :movie="currentMovie"
           @rate-movie="rateMovie"
@@ -67,6 +71,11 @@
           @get-my-films="getMyWatchedMoviesFiltered"
           :filteredMovies="filteredMovies"
         ></playlist-movie>
+        <user-profile
+          v-if="showProfile"
+          :show-profile="showProfile"
+          @profile-updated="handleProfileUpdate"
+        />
       </template>
     </main>
 
@@ -82,6 +91,9 @@ import HomePage from "./components/HomePage.vue";
 import MyFilms from "./components/MyFilms.vue";
 import CurrentlyWatching from "./components/CurrentlyWatching.vue";
 import PlaylistMovie from "./components/PlaylistMovie.vue";
+import UserProfile from "./components/UserProfile.vue";
+// import { UserIcon } from "vue-feather-icons";
+
 import axios from "axios";
 
 export default {
@@ -92,6 +104,8 @@ export default {
     MyFilms,
     CurrentlyWatching,
     PlaylistMovie,
+    UserProfile,
+    // UserIcon,
   },
   setup() {
     const isLoggedIn = ref(false);
@@ -106,6 +120,11 @@ export default {
     const moviesInPlaylist = ref([]);
     const filteredMovies = ref([]);
     const listMoviesToAdd = ref([]);
+    const showProfile = ref(false);
+
+    const toggleProfile = () => {
+      showProfile.value = !showProfile.value;
+    };
 
     const handleLogin = (userData) => {
       // In a real app, you'd verify the login with your backend
@@ -116,6 +135,8 @@ export default {
       // Save username and JWT to local storage
       localStorage.setItem("userToken", userData.token);
       localStorage.setItem("username", userData.username);
+
+      currentPage.value = "HomePage";
     };
     const showCurrentlyWatching = () => {
       currentPage.value = "CurrentlyWatching";
@@ -135,11 +156,11 @@ export default {
       localStorage.removeItem("username");
 
       //redirect to home or login page
-      currentPage.value = "home";
+      currentPage.value = "LoginForm";
     };
 
     const showHome = () => {
-      currentPage.value = "home";
+      currentPage.value = "HomePage";
       currentMovie.value = null;
     };
 
@@ -658,6 +679,10 @@ export default {
         isLoggedIn.value = true;
         sessionUserData.value = username;
         userJWT.value = token;
+        currentPage.value = "HomePage";
+      } else {
+        isLoggedIn.value = false;
+        currentPage.value = "LoginForm";
       }
     });
 
@@ -697,6 +722,8 @@ export default {
       getMyWatchedMoviesFiltered,
       filteredMovies,
       listMoviesToAdd,
+      toggleProfile,
+      showProfile,
     };
   },
 };
@@ -730,6 +757,7 @@ body {
   background-color: var(--primary-color);
   padding: 1rem;
   color: var(--secondary-color);
+  border-bottom: 1px solid #d7d7d7;
 }
 
 .app-title {

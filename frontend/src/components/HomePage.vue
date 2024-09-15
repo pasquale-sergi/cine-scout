@@ -3,10 +3,16 @@
     <div v-if="!movie && !isLoading" class="suggestion-options">
       <h2>Welcome! What kind of movie are you in the mood for?</h2>
       <div class="button-group">
-        <button @click="getRandomSuggestion" class="find-movie-btn">
+        <button
+          @click="getRandomSuggestion"
+          class="action-button action-button-secondary"
+        >
           Surprise me!
         </button>
-        <button @click="showGenreSelection" class="find-movie-btn">
+        <button
+          @click="showGenreSelection"
+          class="action-button action-button-secondary"
+        >
           I have a genre in mind
         </button>
       </div>
@@ -23,7 +29,10 @@
             {{ genre }}
           </option>
         </select>
-        <button @click="getSuggestionByGenre" class="find-movie-btn-second">
+        <button
+          @click="getSuggestionByGenre"
+          class="action-button action-button-secondary"
+        >
           Get Suggestion
         </button>
       </div>
@@ -82,14 +91,23 @@
       </div>
 
       <div class="user-actions">
-        <button @click="addToCurrentlyWatching" class="action-button">
+        <button
+          @click="addToCurrentlyWatching"
+          class="action-button action-button-secondary"
+        >
           Add to currently watching
         </button>
 
-        <button @click="openRatingPopup" class="action-button">
+        <button
+          @click="openRatingPopup"
+          class="action-button action-button-secondary"
+        >
           Mark as Watched
         </button>
-        <button @click="getNextMovie" class="action-button">
+        <button
+          @click="getNextMovie"
+          class="action-button action-button-secondary"
+        >
           Next please!
         </button>
       </div>
@@ -104,6 +122,7 @@
         @rate-movie="rateMovie"
         @mark-watched="saveMovie(movie)"
         @my-films="toMyFilms"
+        @close-mark-pop-up="showRatingPopup = false"
       ></rating-system>
     </div>
 
@@ -112,10 +131,16 @@
       <div>
         <h2>Movie added to the list.</h2>
         <div class="pop-up-buttons">
-          <button @click="showCWPopUp = false" class="action-button">
+          <button
+            @click="showCWPopUp = false"
+            class="action-button action-button-secondary"
+          >
             Close
           </button>
-          <button @click="toMyCurrentlyWatching" class="action-button">
+          <button
+            @click="toMyCurrentlyWatching"
+            class="action-button action-button-secondary"
+          >
             My Currently Watching
           </button>
         </div>
@@ -302,37 +327,8 @@ export default {
   justify-content: center;
 }
 
-.find-movie-btn {
-  margin: 10px;
-  margin-top: 50px;
-  padding: 8px 18px;
-  font-size: 1em;
-  cursor: pointer;
-  background-color: #3089ac;
-  color: rgba(255, 255, 255, 0.93);
-  border: none;
-  border-radius: 10px;
-  transition: background-color 0.3s;
-}
-
-.find-movie-btn-second {
-  margin: 10px;
-  margin-top: 20px;
-  padding: 8px 18px;
-  font-size: 1em;
-  cursor: pointer;
-  background-color: #3089ac;
-  color: rgba(255, 255, 255, 0.93);
-  border: none;
-  border-radius: 10px;
-  transition: background-color 0.3s;
-}
-
-.find-movie-btn:hover {
-  background: #13444f;
-}
 .genre-menu {
-  margin-top: 18px;
+  margin-top: 11px;
   width: 150px;
   height: 40px;
   text-align: center;
@@ -350,6 +346,78 @@ export default {
   justify-content: center;
   gap: 10px;
   margin-top: 10px;
+}
+
+/* Styles for main action buttons on the home page */
+.home-page .action-button {
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-page .action-button-primary {
+  background-color: #3089ac;
+  color: rgba(255, 255, 255, 0.93);
+}
+
+.home-page .action-button-primary:hover {
+  background-color: #13444f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.home-page .action-button-secondary {
+  background-color: transparent;
+  color: #3089ac;
+  border: 2px solid #3089ac;
+}
+
+.home-page .action-button-secondary:hover {
+  background-color: rgba(48, 137, 172, 0.1);
+}
+
+/* Underline effect on hover */
+.home-page .action-button::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 50%;
+  background-color: currentColor;
+  transition: all 0.3s ease;
+}
+
+.home-page .action-button:hover::after {
+  width: 100%;
+  left: 0;
+}
+
+/* Button group styling */
+.home-page .button-group {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 50px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .home-page .button-group {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .home-page .action-button {
+    width: 100%;
+    max-width: 250px;
+  }
 }
 
 .action-button {

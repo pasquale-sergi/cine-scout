@@ -2,7 +2,10 @@
   <div class="my-playlists">
     <div class="title-myplaylists">
       <h2>My Playlists</h2>
-      <button class="create-playlist" @click="showCreatePlaylistPopup">
+      <button
+        class="create-playlist action-button-secondary"
+        @click="showCreatePlaylistPopup"
+      >
         Create a Playlist
       </button>
     </div>
@@ -11,6 +14,7 @@
         v-for="playlist in playlists"
         :key="playlist.id"
         class="playlist-card"
+        @click="showPlaylistDetails(playlist)"
       >
         <!-- Collage of 4 random movies -->
         <div class="collage">
@@ -30,17 +34,12 @@
         <h3>{{ playlist.name }}</h3>
 
         <div class="button-container">
-          <button @click="showPlaylistDetails(playlist)">Show Details</button>
-          <button @click="toggleOptionsMenu(playlist)">Options</button>
-
-          <div
-            v-if="activePlaylist && activePlaylist.id === playlist.id"
-            class="options-menu"
+          <button
+            class="show-details-btn"
+            @click="showPlaylistDetails(playlist)"
           >
-            <button @click="handleAddMovies(playlist)">Add Movies</button>
-            <button @click="handleUpdateName(playlist)">Update Name</button>
-            <button @click="handleRemovePlaylist(playlist)">Remove</button>
-          </div>
+            Show Details
+          </button>
         </div>
       </div>
     </div>
@@ -234,7 +233,7 @@ export default {
     },
     closeAddMoviesPopup() {
       this.isAddMoviesPopupVisible = false;
-      this.selectedPlaylist = null;
+      this.showPlaylistInfo = true;
     },
     closePlaylistDetails() {
       this.$emit("get-playlist");
@@ -251,10 +250,78 @@ export default {
 </script>
   
   <style scoped>
+.title-myplaylists {
+  display: flex;
+  justify-content: center; /* Center the title and button */
+  align-items: center; /* Align items vertically */
+  flex-direction: column; /* Stack title and button vertically */
+  margin-bottom: 20px;
+}
+
+.create-playlist {
+  padding: 8px 16px;
+  font-size: 1em;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.create-playlist::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 50%;
+  background-color: currentColor;
+  transition: all 0.3s ease;
+}
+
+.create-playlist:hover::after {
+  width: 100%;
+  left: 0;
+}
+.action-button-secondary {
+  background-color: transparent;
+  color: #3089ac;
+  border: 2px solid #3089ac;
+}
+.action-button-secondary:hover {
+  background-color: rgba(48, 137, 172, 0.1);
+}
+
+.action-button-secondary:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.create-playlist:focus {
+  outline: none; /* Remove focus outline for a cleaner look */
+}
+
 .my-playlists {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the content horizontally */
   max-width: 1000px;
   margin: 0 auto;
 }
+
+.home-page .action-button-secondary {
+  background-color: transparent;
+  color: #3089ac;
+  border: 2px solid #3089ac;
+}
+
+.home-page .action-button-secondary:hover {
+  background-color: rgba(48, 137, 172, 0.1);
+}
+
+/* ----------------- */
 
 .playlist-grid {
   display: flex;
@@ -297,7 +364,7 @@ export default {
   border-radius: 4px;
 }
 
-button {
+.show-details-btn {
   background-color: #407c94;
   color: white;
   border: none;
@@ -307,39 +374,6 @@ button {
   margin-right: 7px;
 }
 
-.options-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background-color: #f9f9f9;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  padding: 10px;
-  z-index: 1;
-}
-.title-myplaylists {
-  display: flex;
-  justify-content: space-between; /* Spread the title and button */
-  align-items: center; /* Align items vertically */
-}
-
-.create-playlist {
-  background: none;
-  border: none;
-  color: #407c94;
-  font-size: 1.1rem;
-  cursor: pointer;
-  text-decoration: none;
-  padding: 5px 15px;
-}
-
-.create-playlist:hover {
-  text-decoration: underline;
-}
-
-.create-playlist:focus {
-  outline: none; /* Remove focus outline for a cleaner look */
-}
 .add-movies-popup {
   position: fixed;
   top: 0;

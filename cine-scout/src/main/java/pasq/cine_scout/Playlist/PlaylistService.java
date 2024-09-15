@@ -71,7 +71,7 @@ public class PlaylistService {
                 PlaylistDto dto = new PlaylistDto();
                 dto.setId(p.getId());
                 dto.setDescription(p.getDescription());
-                dto.setName(p.getName());
+                dto.setName(p.getName());   
                 dto.setUserId(p.getUser().getUserId());
 
                 // Set the list of movie IDs in the DTO

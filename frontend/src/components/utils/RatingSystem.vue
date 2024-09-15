@@ -37,9 +37,7 @@
       >
         Save without rating
       </button>
-      <button class="close-btn" @click.stop="closeRatingPopup, popUpOff">
-        &times;
-      </button>
+      <button class="close-btn" @click.stop="closeMarkPopUp">&times;</button>
     </div>
   </div>
   <div class="mark-pop-up" v-if="showMarkPopUp">
@@ -48,7 +46,7 @@
         <p>Movie added to your list.</p>
       </div>
       <div class="buttons">
-        <div class="action-button" @click="showMarkPopUp = false">Close</div>
+        <div class="action-button" @click="closeMarkPopUp">Close</div>
         <div class="action-button" @click="toMyFilms">My Movies</div>
       </div>
     </div>
@@ -59,7 +57,13 @@
 import { ref } from "vue";
 export default {
   name: "RatingSystem",
-  emits: ["mark-watched", "rate-movie", "my-films", "close-rating-pop-up"],
+  emits: [
+    "mark-watched",
+    "rate-movie",
+    "my-films",
+    "close-rating-pop-up",
+    "close-mark-pop-up",
+  ],
   setup(props, { emit }) {
     const showRatingPopup = ref(true);
     const currentRating = ref(0);
@@ -71,11 +75,13 @@ export default {
     };
     const closeRatingPopup = () => {
       showRatingPopup.value = false;
-    };
-
-    const popUpOff = () => {
       emit("close-rating-pop-up");
     };
+    const closeMarkPopUp = () => {
+      showMarkPopUp.value = false;
+      emit("close-mark-pop-up");
+    };
+
     const rateMovie = (rating) => {
       currentRating.value = rating;
 
@@ -102,7 +108,7 @@ export default {
       currentRating,
       toMyFilms,
       showMarkPopUp,
-      popUpOff,
+      closeMarkPopUp,
     };
   },
 };

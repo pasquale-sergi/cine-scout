@@ -88,7 +88,6 @@ export default {
         }
 
         const data = await response.json();
-        console.log("DATA", data);
         if (data.username == null || data.jwt == null) {
           console.error("This Login Failed");
           state.authFailed = true;
