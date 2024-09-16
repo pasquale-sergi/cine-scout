@@ -6,6 +6,7 @@ import org.springframework.boot.context.config.ConfigDataResourceNotFoundExcepti
 import org.springframework.stereotype.Service;
 import pasq.cine_scout.ApplicationUser.ApplicationUser;
 import pasq.cine_scout.ApplicationUser.UserRepository;
+import pasq.cine_scout.ExceptionsHandling.MovieException;
 import pasq.cine_scout.Movie.Movie;
 import pasq.cine_scout.Movie.MovieRepository;
 
@@ -26,8 +27,6 @@ public class SavedMoviesService {
 
     @Transactional
     public SavedMovies saveMovie(String username, Movie movie) {
-        //debug
-        System.out.println("reecived movie ready to be saved with details: "+movie);
         // Find the user
         ApplicationUser user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
@@ -37,16 +36,7 @@ public class SavedMoviesService {
                 .map(existingMovie -> {
                     // If the movie exists, update its details with new values
                     existingMovie.setRating(movie.getRating());
-                    /*
-                    existingMovie.setGenres(movie.getGenres());
-                    existingMovie.setOverview(movie.getOverview());
-                    existingMovie.setPoster_path(movie.getPoster_path());
-                    existingMovie.setVote_average(movie.getVote_average());
-                    existingMovie.setOriginal_language(movie.getOriginal_language());
-                    existingMovie.setRuntime(movie.getRuntime());
-                    existingMovie.setRelease_date(movie.getRelease_date());
 
-                     */
                     return movieRepository.save(existingMovie); // Save the updated movie
                 })
                 .orElseGet(() -> {
@@ -70,7 +60,7 @@ public class SavedMoviesService {
         // Check if the user has already saved this movie
         Optional<SavedMovies> existingSavedMovie = savedMovieRepository.findByUserAndMovie(user, savedMovie);
         if (existingSavedMovie.isPresent()) {
-            throw new RuntimeException("Movie already saved by this user");
+            throw MovieException.movieAlreadySaved();
         }
 
         // Create a new SavedMovie entry

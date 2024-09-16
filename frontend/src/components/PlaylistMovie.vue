@@ -52,6 +52,8 @@
       v-if="isCreatePlaylistPopupVisible"
       @close="closeCreatePlaylistPopup"
       @create-playlist="handleCreatePlaylist"
+      :playlistCreationError="playlistCreationError"
+      @reset-error="resetError"
     />
 
     <!-- Popup for adding movies -->
@@ -141,6 +143,9 @@ export default {
       type: Array,
       required: true,
     },
+    playlistCreationError: {
+      type: String,
+    },
   },
   emits: [
     "delete-movie-from-playlist",
@@ -150,6 +155,7 @@ export default {
     "rename-the-playlist",
     "delete-the-playlist",
     "get-my-films",
+    "reset-error",
   ],
   data() {
     return {
@@ -161,9 +167,13 @@ export default {
       notificationTimeout: null,
       showCreatePlaylistModal: false,
       isCreatePlaylistPopupVisible: false,
+      errorMessage: "",
     };
   },
   methods: {
+    resetError() {
+      this.$emit("reset-error");
+    },
     getRandomMovies(movies) {
       // Return a random selection of 4 movies
       return movies.length > 2 ? movies.slice(0, 2) : movies;
@@ -222,6 +232,9 @@ export default {
         // Show add movies popup for the newly created playlist
         this.handleAddMovies({ name: playlistData.name });
       }
+    },
+    handleError(message) {
+      this.errorMessage = message; // Update the error message
     },
 
     showNotification() {

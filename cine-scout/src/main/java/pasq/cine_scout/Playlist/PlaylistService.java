@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pasq.cine_scout.ApplicationUser.ApplicationUser;
 import pasq.cine_scout.ApplicationUser.UserRepository;
+import pasq.cine_scout.ExceptionsHandling.PlaylistException;
 import pasq.cine_scout.Movie.Movie;
 import pasq.cine_scout.Movie.MovieRepository;
 
@@ -24,8 +25,9 @@ public class PlaylistService {
 
     public Playlist createPlaylist(String username, String name, String description){
         //check if the name is already used for another playlist
-        Optional<Playlist> playlistExist = playlistRepository.findByName(name);
         ApplicationUser user = userRepository.findByUsername(username).get();
+        Optional<Playlist> playlistExist = playlistRepository.findByNameAndUser(name, user);
+
         if(playlistExist.isEmpty()){
             //we create that one
             Playlist playlist = Playlist.builder()
@@ -36,7 +38,7 @@ public class PlaylistService {
             playlistRepository.save(playlist);
             return  playlist;
         }else{
-            throw new RuntimeException("Playlist already exist with given name.");
+            throw PlaylistException.playlistAlreadyExist();
         }
     }
 

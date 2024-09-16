@@ -91,6 +91,7 @@
       :movie="selectedMovie"
       :isVisible="isMovieDetailsVisible"
       @close="closeMovieDetails"
+      :playlistCreationError="playlistCreationError"
     ></film-details>
   </div>
 </template>
@@ -121,6 +122,9 @@ export default {
     showPlaylistDetails: {
       type: Boolean,
       required: true,
+    },
+    playlistCreationError: {
+      type: String,
     },
   },
   emits: [

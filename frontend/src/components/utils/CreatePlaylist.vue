@@ -31,6 +31,11 @@
           Create Playlist
         </button>
       </div>
+      <div class="error-window" v-if="playlistCreationError">
+        <p class="error-message">
+          {{ playlistCreationError }}
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -38,6 +43,12 @@
   <script>
 export default {
   name: "CreatePlaylistPopup",
+  props: {
+    playlistCreationError: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       title: "",
@@ -54,13 +65,18 @@ export default {
           description: this.description,
           addMovies: this.addMovies,
         });
-        this.close();
+
+        if (!this.playlistCreationError) {
+          this.close();
+        }
       } else {
         // Optionally, show an error message if the title is empty or just whitespace
         alert("Please enter a playlist title");
       }
     },
     close() {
+      this.$emit("reset-error");
+
       this.$emit("close");
     },
   },
@@ -68,6 +84,14 @@ export default {
 </script>
   
   <style scoped>
+.error-window {
+  display: flex;
+  justify-content: center;
+}
+.error-message {
+  color: red;
+  margin-top: 5px;
+}
 .popup-overlay {
   position: fixed;
   top: 0;

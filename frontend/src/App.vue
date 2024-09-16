@@ -70,6 +70,8 @@
           @create-the-playlist="createPlaylist"
           @get-my-films="getMyWatchedMoviesFiltered"
           :filteredMovies="filteredMovies"
+          :playlistCreationError="playlistCreationError"
+          @reset-error="resetPlaylistError"
         ></playlist-movie>
         <user-profile
           v-if="showProfile"
@@ -121,6 +123,7 @@ export default {
     const filteredMovies = ref([]);
     const listMoviesToAdd = ref([]);
     const showProfile = ref(false);
+    const playlistCreationError = ref(null);
 
     const toggleProfile = () => {
       showProfile.value = !showProfile.value;
@@ -649,6 +652,13 @@ export default {
             body: JSON.stringify(bodyRequest),
           }
         );
+        if (!response.ok) {
+          const errorData = await response.json(); // Parse custom error response
+          console.error(errorData.message); // Log the error message
+          playlistCreationError.value = errorData.message;
+          console.log("sending error data: ", playlistCreationError.value);
+          return;
+        }
 
         const data = await response.json();
         console.log(data);
@@ -656,6 +666,10 @@ export default {
       } catch (error) {
         console.error("error creating the playlist");
       }
+    };
+
+    const resetPlaylistError = () => {
+      playlistCreationError.value = null;
     };
 
     const getMyWatchedMoviesFiltered = async (playlist) => {
@@ -676,11 +690,14 @@ export default {
       const username = localStorage.getItem("username");
 
       if (token && username) {
+        console.log("logged in");
+        console.log(token, username);
         isLoggedIn.value = true;
         sessionUserData.value = username;
         userJWT.value = token;
         currentPage.value = "HomePage";
       } else {
+        console.log("Not logged in");
         isLoggedIn.value = false;
         currentPage.value = "LoginForm";
       }
@@ -724,6 +741,8 @@ export default {
       listMoviesToAdd,
       toggleProfile,
       showProfile,
+      playlistCreationError,
+      resetPlaylistError,
     };
   },
 };
