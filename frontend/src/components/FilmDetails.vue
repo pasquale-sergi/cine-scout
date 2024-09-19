@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isVisible" class="popup-overlay" @click.self="closePopup">
+  <div class="popup-overlay" @click.self="closePopup">
     <div class="popup-content">
       <button class="close-button" @click="closePopup">×</button>
       <div class="title">
@@ -62,10 +62,10 @@ export default {
       type: Object,
       required: true,
     },
-    isVisible: {
-      type: Boolean,
-      default: false,
-    },
+    // isVisible: {
+    //   type: Boolean,
+    //   default: false,
+    // },
   },
   methods: {
     closePopup() {

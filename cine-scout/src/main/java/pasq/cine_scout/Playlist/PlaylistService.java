@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pasq.cine_scout.ApplicationUser.ApplicationUser;
 import pasq.cine_scout.ApplicationUser.UserRepository;
+import pasq.cine_scout.ExceptionsHandling.MovieException;
 import pasq.cine_scout.ExceptionsHandling.PlaylistException;
 import pasq.cine_scout.Movie.Movie;
 import pasq.cine_scout.Movie.MovieRepository;
@@ -103,7 +104,7 @@ public class PlaylistService {
     public Playlist addMovieToPlaylist(String name, String username, Integer movieId){
         System.out.println("received request to add movie with data: "+username+" " +name+" "+movieId);
         ApplicationUser user = userRepository.findByUsername(username).get();
-        Playlist playlist = playlistRepository.findByName(name).get();
+        Playlist playlist = playlistRepository.findByNameAndUser(name,user).get();
         if(!(playlist.getUser()).equals(user)){
             throw new RuntimeException("You don't have permissions to modify this playlist.");
         }
@@ -113,9 +114,10 @@ public class PlaylistService {
         boolean movieExistInPlaylist = playlist.getMovies().stream().anyMatch(m->m.getMovieId().equals(movie.getMovieId()));
 
         if(movieExistInPlaylist){
-            throw new RuntimeException("Movie is already in the playlist");
+            throw MovieException.movieAlreadySaved();
         }
         playlist.getMovies().add(movie);
+        playlistRepository.save(playlist);
 
         return playlist;
     }
@@ -149,9 +151,17 @@ public class PlaylistService {
         Playlist playlist = playlistRepository.findByNameAndUser(name, user)
                 .orElseThrow(() -> new RuntimeException("Playlist not found"));
 
-        playlist.setName(newName);
+        Playlist checkIfAlreadyExist = playlistRepository.findByNameAndUser(newName, user).get();
+        if(checkIfAlreadyExist.getId()==null){
+            playlist.setName(newName);
 
-        return playlistRepository.save(playlist);
+            return playlistRepository.save(playlist);
+        }else{
+            throw PlaylistException.playlistAlreadyExist();
+        }
+
+
+
     }
 
     @Transactional

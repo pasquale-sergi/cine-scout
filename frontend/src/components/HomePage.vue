@@ -162,10 +162,6 @@ export default {
       type: Object,
       default: () => ({}),
     },
-    username: {
-      type: String,
-      required: true,
-    },
   },
   emits: [
     "get-suggestion",

@@ -16,7 +16,7 @@
         class="playlist-card"
         @click="showPlaylistDetails(playlist)"
       >
-        <!-- Collage of 4 random movies -->
+        <!-- Collage of 2 random movies -->
         <div class="collage">
           <div
             v-for="(movie, index) in getRandomMovies(playlist.movies)"
@@ -108,6 +108,7 @@
         @remove-movie="handleRemoveMovie"
         @delete-playlist="handleDeletePlaylist"
         :moviesInPlaylist="moviesInPlaylist"
+        :playlistCreationError="playlistCreationError"
       ></playlist-details>
     </div>
   </div>
@@ -246,7 +247,6 @@ export default {
     },
     closeAddMoviesPopup() {
       this.isAddMoviesPopupVisible = false;
-      this.showPlaylistInfo = true;
     },
     closePlaylistDetails() {
       this.$emit("get-playlist");
@@ -495,7 +495,7 @@ export default {
   background: none;
   color: #05012ca1;
   top: 1px;
-  right: -9px;
+  right: 1px;
   font-size: 1.5rem;
   border: none;
   padding: 5px 10px;

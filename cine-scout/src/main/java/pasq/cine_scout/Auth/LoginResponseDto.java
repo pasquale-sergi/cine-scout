@@ -12,6 +12,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class LoginResponseDto {
     private Integer id;
+    private String email;
     private String username;
     private String jwt;
 

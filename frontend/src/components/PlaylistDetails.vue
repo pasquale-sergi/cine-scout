@@ -60,6 +60,9 @@
           placeholder="Enter new playlist name"
           ref="renameInput"
         />
+        <div class="error-message" v-if="playlistCreationError">
+          <p>{{ playlistCreationError }}</p>
+        </div>
         <div class="modal-actions">
           <button @click="confirmRename" class="confirm-button">Rename</button>
           <button @click="cancelRename" class="cancel-button">Cancel</button>
@@ -89,7 +92,6 @@
     <film-details
       v-if="selectedMovie"
       :movie="selectedMovie"
-      :isVisible="isMovieDetailsVisible"
       @close="closeMovieDetails"
       :playlistCreationError="playlistCreationError"
     ></film-details>
@@ -111,20 +113,17 @@ export default {
       type: Object,
       required: true,
     },
-    isVisible: {
-      type: Boolean,
-      required: true,
-    },
+    // isVisible: {
+    //   type: Boolean,
+    //   required: true,
+    // },
     moviesInPlaylist: {
       type: Array,
       required: true,
     },
-    showPlaylistDetails: {
-      type: Boolean,
-      required: true,
-    },
     playlistCreationError: {
       type: String,
+      required: true,
     },
   },
   emits: [
@@ -292,7 +291,10 @@ export default {
 .action-button:hover {
   background-color: #13444f;
 }
-
+.error-message {
+  color: red;
+  font: bold;
+}
 .action-playlist-button {
   background-color: transparent;
   border: none;

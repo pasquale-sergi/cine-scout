@@ -65,10 +65,6 @@ export default {
           description: this.description,
           addMovies: this.addMovies,
         });
-
-        if (!this.playlistCreationError) {
-          this.close();
-        }
       } else {
         // Optionally, show an error message if the title is empty or just whitespace
         alert("Please enter a playlist title");

@@ -74,9 +74,13 @@
           @reset-error="resetPlaylistError"
         ></playlist-movie>
         <user-profile
-          v-if="showProfile"
+          v-if="currentPage === 'UserProfile'"
           :show-profile="showProfile"
           @profile-updated="handleProfileUpdate"
+          @check-password="checkPassword"
+          :passwordCorrect="passwordCorrect"
+          @update-password="updatePassword"
+          :updatePasswordFailed="updatePasswordFailed"
         />
       </template>
     </main>
@@ -124,13 +128,16 @@ export default {
     const listMoviesToAdd = ref([]);
     const showProfile = ref(false);
     const playlistCreationError = ref(null);
+    const passwordCorrect = ref(null);
+    const updatePasswordFailed = ref(null);
 
     const toggleProfile = () => {
-      showProfile.value = !showProfile.value;
+      currentPage.value = "UserProfile";
     };
 
     const handleLogin = (userData) => {
       // In a real app, you'd verify the login with your backend
+      console.log("user data: ", userData);
       isLoggedIn.value = true;
       userJWT.value = userData.token;
       sessionUserData.value = userData.username;
@@ -138,12 +145,81 @@ export default {
       // Save username and JWT to local storage
       localStorage.setItem("userToken", userData.token);
       localStorage.setItem("username", userData.username);
+      localStorage.setItem("email", userData.email);
 
       currentPage.value = "HomePage";
     };
     const showCurrentlyWatching = () => {
       currentPage.value = "CurrentlyWatching";
       getCurrentWatching();
+    };
+
+    const checkPassword = async (password) => {
+      console.log("received a password to check: ", password);
+
+      try {
+        const response = await fetch(
+          `http://localhost:8080/auth/check-password`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${userJWT.value}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username: sessionUserData.value,
+              password: password,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        data == true
+          ? (passwordCorrect.value = true)
+          : (passwordCorrect.value = false);
+      } catch (error) {
+        console.error("Error checking the password:", error);
+        passwordCorrect.value = false;
+      }
+    };
+    const validatePassword = (password) => {
+      // At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character
+      const re =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
+      return re.test(password);
+    };
+
+    const updatePassword = async (newPassword) => {
+      console.log("sending to backend new passw: ", newPassword);
+
+      try {
+        console.log(validatePassword(newPassword));
+        if (!validatePassword(newPassword)) {
+          console.log("testing failed");
+          updatePasswordFailed.value = true;
+          return;
+        }
+        await fetch(`http://localhost:8080/auth/update-password`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${userJWT.value}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: sessionUserData.value,
+            password: newPassword,
+          }),
+        });
+        console.log("password validated and sent");
+        updatePasswordFailed.value = false;
+      } catch (error) {
+        console.error("Error updating password");
+        updatePasswordFailed.value = true;
+      }
     };
 
     const logout = () => {
@@ -154,11 +230,9 @@ export default {
       userJWT.value = null;
       sessionUserData.value = null;
 
-      // clear local storage
       localStorage.removeItem("userToken");
       localStorage.removeItem("username");
 
-      //redirect to home or login page
       currentPage.value = "LoginForm";
     };
 
@@ -580,20 +654,17 @@ export default {
 
         await response.json();
         await getPlaylists();
+        //update the list by removing the added movie from the ui
+
         filteredMovies.value = filteredMovies.value.filter(
           (movie) => movie.id !== parameters.movieId
         );
-
-        //update the list by removing the added movie from the ui
       } catch (error) {
         console.error("error adding the movie to the playlist");
       }
     };
 
     const renamePlaylist = async (playlist) => {
-      console.log("passing parameters: ");
-      console.log(typeof playlist, playlist);
-      // console.log(typeof newName, newName);
       try {
         const response = await fetch(
           `http://localhost:8080/playlist/${sessionUserData.value}/update-name?name=${playlist.playlist.name}&newName=${playlist.newName}`,
@@ -605,9 +676,11 @@ export default {
             },
           }
         );
-
         const data = await response.json();
-        console.log("response from updating func: ", data);
+        if (!response.ok) {
+          playlistCreationError.value = data.message;
+          throw new Error(data.message);
+        }
       } catch (error) {
         console.log("error updating the name of the playlist");
       }
@@ -684,23 +757,40 @@ export default {
         console.error("error filtering the movies");
       }
     };
-
-    onMounted(() => {
+    const validateToken = async () => {
       const token = localStorage.getItem("userToken");
       const username = localStorage.getItem("username");
 
       if (token && username) {
-        console.log("logged in");
-        console.log(token, username);
-        isLoggedIn.value = true;
-        sessionUserData.value = username;
-        userJWT.value = token;
-        currentPage.value = "HomePage";
+        try {
+          const response = await axios.post(
+            "http://localhost:8080/auth/validate-token",
+            {},
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          if (response.data.valid) {
+            isLoggedIn.value = true;
+            sessionUserData.value = username;
+            userJWT.value = token;
+            currentPage.value = "HomePage";
+          } else {
+            throw new Error("Invalid token");
+          }
+        } catch (error) {
+          console.error("Token validation failed:", error);
+          logout();
+        }
       } else {
-        console.log("Not logged in");
         isLoggedIn.value = false;
         currentPage.value = "LoginForm";
       }
+    };
+
+    onMounted(() => {
+      validateToken();
     });
 
     return {
@@ -743,6 +833,12 @@ export default {
       showProfile,
       playlistCreationError,
       resetPlaylistError,
+      validateToken,
+      checkPassword,
+      passwordCorrect,
+      updatePassword,
+      validatePassword,
+      updatePasswordFailed,
     };
   },
 };

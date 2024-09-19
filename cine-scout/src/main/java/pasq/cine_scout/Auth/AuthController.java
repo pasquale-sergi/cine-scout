@@ -21,4 +21,14 @@ public class AuthController {
     public LoginResponseDto loginUser(@RequestBody LoginDto request){
         return authService.loginUser(request.getUsername(), request.getPassword());
     }
+
+    @PostMapping("/check-password")
+    public Boolean checkPassword(@RequestBody LoginDto request){
+        return authService.checkPassword(request.getUsername(), request.getPassword());
+    }
+
+    @PutMapping("/update-password")
+    public void updatePassword(@RequestBody LoginDto request){
+        authService.updatePassword(request.getUsername(), request.getPassword());
+    }
 }

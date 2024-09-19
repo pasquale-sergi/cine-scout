@@ -13,6 +13,7 @@ import pasq.cine_scout.ApplicationUser.ApplicationUser;
 import pasq.cine_scout.ApplicationUser.Role;
 import pasq.cine_scout.ApplicationUser.RoleRepository;
 import pasq.cine_scout.ApplicationUser.UserRepository;
+import pasq.cine_scout.ExceptionsHandling.UserException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -49,9 +50,21 @@ public class AuthService {
 
             String token = tokenService.generateJwt(auth);
             ApplicationUser user = userRepository.findByUsername(username).get();
-            return new LoginResponseDto(user.getUserId(), user.getUsername(), token);
+            return new LoginResponseDto(user.getUserId(),user.getEmail(), user.getUsername(), token);
         }catch (AuthenticationException e){
-            return new LoginResponseDto(null,null,  "");
+            return new LoginResponseDto(null,null,null,  "");
         }
+    }
+
+    public Boolean checkPassword(String username, String password){
+        ApplicationUser user = userRepository.findByUsername(username).orElseThrow(UserException::userNotFoundWithUsername);
+
+        return passwordEncoder.matches(password, user.getPassword());
+    }
+
+    public void updatePassword(String username, String newPassword){
+        ApplicationUser user = userRepository.findByUsername(username).orElseThrow(UserException::userNotFoundWithUsername);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }

@@ -66,7 +66,7 @@ export default {
     const validatePassword = (password) => {
       // At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character
       const re =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
       return re.test(password);
     };
 
@@ -80,6 +80,7 @@ export default {
           body: JSON.stringify({
             username: username.value,
             password: password.value,
+            email: email.value,
           }),
         });
 
@@ -95,14 +96,16 @@ export default {
         } else {
           console.log("Login successful:", data);
           state.authFailed = false;
-          emit("login", { username: username.value, token: data.jwt }); // Assuming the backend returns a token
+          emit("login", {
+            username: username.value,
+            token: data.jwt,
+            email: data.email,
+          });
         }
       } catch (error) {
         console.error("Login failed:", error);
         state.authFailed = true;
         state.message = "An error occurred. Please try again.";
-
-        // Here you might want to show an error message to the user
       }
     };
 
