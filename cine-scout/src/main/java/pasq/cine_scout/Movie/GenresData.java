@@ -1,5 +1,6 @@
 package pasq.cine_scout.Movie;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,7 +24,10 @@ public class GenresData {
 
     @ManyToOne(fetch = FetchType.LAZY) // Optional: to link back to a specific movie
     @JoinColumn(name = "movie_id")
+    @JsonBackReference
     private Movie movie;
+
+    private Integer genreId;
 
     // Constructor without the movie parameter
     public GenresData(Integer id, String name) {

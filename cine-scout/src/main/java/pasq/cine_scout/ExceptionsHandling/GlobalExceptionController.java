@@ -15,4 +15,10 @@ public class GlobalExceptionController {
         CustomErrorResponse error = new CustomErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value());
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<CustomErrorResponse> handleUserException(UserException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new CustomErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value()));
+    }
+
 }

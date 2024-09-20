@@ -1,6 +1,7 @@
 package pasq.cine_scout.Movie;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,8 +35,9 @@ public class Movie {
     private String poster_path;
     private String original_language;
 
-    @OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY) // LAZY fetching for better performance
-    @JoinColumn(name = "movie_id") // Ensures the join is done on movie_id in the genres table
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // LAZY fetching for better performance
+    @JoinColumn(name = "movie_id")
+    @JsonManagedReference
     private List<GenresData> genres;
     private long budget;
     private long revenue;

@@ -85,17 +85,17 @@ export default {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorData = await response.json();
+          state.message = errorData.message;
         }
 
         const data = await response.json();
         if (data.username == null || data.jwt == null) {
-          console.error("This Login Failed");
+          console.error("Login Failed");
           state.authFailed = true;
-          state.message = "Incorrect username or password.";
         } else {
-          console.log("Login successful:", data);
           state.authFailed = false;
+          console.log("Login successfull");
           emit("login", {
             username: username.value,
             token: data.jwt,
@@ -103,9 +103,7 @@ export default {
           });
         }
       } catch (error) {
-        console.error("Login failed:", error);
         state.authFailed = true;
-        state.message = "An error occurred. Please try again.";
       }
     };
 
@@ -133,14 +131,6 @@ export default {
         return;
       }
 
-      console.log(
-        "data sending to the backend: " +
-          "username: " +
-          username.value +
-          "email: " +
-          email.value
-      );
-
       try {
         const response = await fetch("http://localhost:8080/auth/sign-up", {
           method: "POST",
@@ -155,7 +145,9 @@ export default {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorData = await response.json();
+
+          state.message = errorData.message;
         }
 
         const data = await response.json();
@@ -164,9 +156,7 @@ export default {
         state.message = "Registration successful! Please log in.";
         state.showLogin = true;
       } catch (error) {
-        console.error("Registration failed:", error);
         state.authFailed = true;
-        state.message = "An error occurred. Please try again.";
       }
     };
     const toggleForm = () => {

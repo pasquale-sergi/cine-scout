@@ -386,6 +386,11 @@ export default {
       ) {
         watchedMovies.value.push({ ...currentMovie.value });
 
+        console.log(
+          "genre about to be pushed to request body: ",
+          currentMovie.value.genres
+        );
+
         const requestBody = {
           username: sessionUserData.value,
           movie: {
@@ -404,6 +409,12 @@ export default {
           },
         };
 
+        console.log(
+          "sending a movie to mark watched with title and genres: ",
+          requestBody.movie.title,
+          requestBody.movie.genres
+        );
+
         try {
           const response = await fetch("http://localhost:8080/movie/save", {
             method: "POST",
@@ -418,6 +429,7 @@ export default {
             throw new Error("Network response was not ok");
           }
           const data = await response.json();
+          console.log("added movie to mark watched with data: ", data);
           return data;
         } catch (error) {
           console.error("Error saving the movie:", error);

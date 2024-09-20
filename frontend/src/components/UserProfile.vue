@@ -50,7 +50,7 @@
         <div v-if="!updatePasswordFailed && updatePasswordAttempted">
           <p>Password updated</p>
         </div>
-        <div v-else>
+        <div v-else-if="updatePasswordFailed && updatePasswordAttempted">
           <p>
             Password must be at least 8 characters long and contain at least one
             uppercase letter, one lowercase letter, one number, and one special
@@ -126,7 +126,7 @@ export default {
       (newValue) => {
         if (newValue) {
           passwordCheckAttempted.value = false;
-          updatePasswordAttempted.value = false;  
+          updatePasswordAttempted.value = false;
         }
       }
     );

@@ -64,6 +64,7 @@ public class SecurityConfig {
                     auth.requestMatchers("/auth/**").permitAll();
                     auth.requestMatchers("/admin/**").hasRole("ADMIN");
                     auth.requestMatchers("/user/**").authenticated();
+                    auth.requestMatchers("/playlist/**").authenticated();
                     auth.anyRequest().authenticated();
                 });
         http

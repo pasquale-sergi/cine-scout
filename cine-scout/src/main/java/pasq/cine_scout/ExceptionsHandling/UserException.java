@@ -12,12 +12,16 @@ public class UserException extends RuntimeException{
         return new UserException("Invalid email address.");
     }
     public static UserException passwordNotValid(){
-        return new UserException("Invalid password");
+        return new UserException("Invalid password.");
     }
 
     public static UserException userNotFoundWithUsername(){return new UserException("Invalid username.");}
     //for signup
     public static UserException accountAlreadyExist(){
         return new UserException("This email address is already registered.");
+    }
+
+    public static UserException usernameAlreadyUsed(){
+        return new UserException("Username is already taken.");
     }
 }
