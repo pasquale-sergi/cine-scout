@@ -90,6 +90,6 @@ public class MovieController {
 
     @DeleteMapping("/currently-watching/delete")
     public void deleteFromCurrentlyWatching(@RequestParam Integer movieId, @RequestParam String username){
-        movieService.deleteMusicFromCurrentlyWatching(username, movieId);
+        movieService.deleteMovieFromCurrentlyWatching(username, movieId);
     }
 }

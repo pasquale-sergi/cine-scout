@@ -14,8 +14,8 @@ public class ApplicationUserController {
     private UserService userService;
 
     @GetMapping("/details")
-    public ResponseEntity<ApplicationUser> getUserInfo(@RequestParam String username){
-        ApplicationUser user = userService.getUserInfo(username);
+    public ResponseEntity<UserDetailsDto> getUserInfo(@RequestParam String username){
+        UserDetailsDto user = userService.getUserInfo(username);
         return ResponseEntity.ok().body(user);
     }
 }

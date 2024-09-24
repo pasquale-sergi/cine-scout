@@ -21,6 +21,11 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username).orElseThrow(()->new UsernameNotFoundException("User not found."));
     }
 
-   public ApplicationUser getUserInfo(String username) {
-       return userRepository.findByUsername(username).get();
+   public UserDetailsDto getUserInfo(String username) {
+       ApplicationUser user = userRepository.findByUsername(username).get();
+       UserDetailsDto userInfo = new UserDetailsDto();
+       userInfo.setId(user.getUserId());
+       userInfo.setUsername(user.getUsername());
+       userInfo.setEmail(user.getEmail());
+       return userInfo;
    }}

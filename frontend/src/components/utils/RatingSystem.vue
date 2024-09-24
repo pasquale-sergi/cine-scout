@@ -37,7 +37,7 @@
       >
         Save without rating
       </button>
-      <button class="close-btn" @click.stop="closeMarkPopUp">&times;</button>
+      <button class="close-btn" @click.stop="closeRatingPopup">&times;</button>
     </div>
   </div>
   <div class="mark-pop-up" v-if="showMarkPopUp">

@@ -44,7 +44,7 @@
     </div>
 
     <film-details
-      v-if="selectedMovie"
+      v-if="selectedMovie && isPopupVisible"
       :movie="selectedMovie"
       :isVisible="isPopupVisible"
       @close="closeMovieDetails"
