@@ -43,4 +43,11 @@ public class Movie {
     private long revenue;
     private Double rating;
 
+
+    @Override
+    public String toString() {
+        return "Movie{id=" + id + ", title='" + title + "'}";
+    }
+
 }
+

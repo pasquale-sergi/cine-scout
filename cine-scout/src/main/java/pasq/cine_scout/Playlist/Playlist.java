@@ -38,4 +38,8 @@ public class Playlist {
     )
     private Set<Movie> movies = new HashSet<>();
 
+    @Override
+    public String toString() {
+        return "Playlist{id=" + id + ", name='" + name + "'}";
+    }
 }

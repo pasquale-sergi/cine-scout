@@ -123,6 +123,7 @@
         @mark-watched="saveMovie(movie)"
         @my-films="toMyFilms"
         @close-mark-pop-up="showRatingPopup = false"
+        @close-rating-pop-up="showRatingPopup = false"
       ></rating-system>
     </div>
 

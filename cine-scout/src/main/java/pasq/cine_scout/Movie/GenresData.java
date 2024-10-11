@@ -90,4 +90,9 @@ public class GenresData {
     public int hashCode() {
         return getClass().hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "GenresData{id=" + id + ", genre='" + name    + "'}";
+    }
 }

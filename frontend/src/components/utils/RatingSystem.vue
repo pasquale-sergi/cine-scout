@@ -19,7 +19,7 @@
       <p>{{ currentRating || hoverRating || 0 }} / 10</p>
       <button
         @click.stop="
-          closeRatingPopup();
+          showRatingPopup = false;
           markAsWatched();
           showMarkPopUp = true;
         "
@@ -29,7 +29,7 @@
       </button>
       <button
         @click.stop="
-          closeRatingPopup();
+          showRatingPopup = false;
           markAsWatched();
           showMarkPopUp = true;
         "
@@ -89,8 +89,6 @@ export default {
     };
 
     const markAsWatched = () => {
-      showMarkPopUp.value = false;
-
       emit("mark-watched");
     };
 
@@ -120,15 +118,27 @@ export default {
   padding: 10px 20px;
   font-size: 1em;
   cursor: pointer;
-  background-color: #407c94;
-  color: rgba(255, 255, 255, 0.93);
-  border: none;
+  background-color: transparent;
+  color: #3089ac;
+  border: 2px solid #3089ac;
   border-radius: 10px;
   transition: background-color 0.3s;
 }
 
 .action-button:hover {
-  background-color: #13444f;
+  background-color: rgba(48, 137, 172, 0.1);
+}
+
+/* Underline effect on hover */
+.action-button::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 50%;
+  background-color: currentColor;
+  transition: all 0.3s ease;
 }
 
 .close-btn {

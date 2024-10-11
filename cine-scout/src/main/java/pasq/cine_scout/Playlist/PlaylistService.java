@@ -145,22 +145,17 @@ public class PlaylistService {
     }
     @Transactional
     public Playlist updateName(String username, String name, String newName){
+        System.out.println("received a request to change name with name: "+newName);
         ApplicationUser user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
+        System.out.println("user found: "+user );
         Playlist playlist = playlistRepository.findByNameAndUser(name, user)
                 .orElseThrow(() -> new RuntimeException("Playlist not found"));
+        System.out.println("playlist found: "+playlist);
 
-        Playlist checkIfAlreadyExist = playlistRepository.findByNameAndUser(newName, user).get();
-        if(checkIfAlreadyExist.getId()==null){
             playlist.setName(newName);
 
             return playlistRepository.save(playlist);
-        }else{
-            throw PlaylistException.playlistAlreadyExist();
-        }
-
-
 
     }
 
